@@ -6,6 +6,8 @@ A modern, AI-powered conversational assistant that provides personalized credit 
 
 CardXpert AI is an intelligent chatbot built with Next.js and Google Gemini AI that helps users find the perfect credit card by analyzing their income, spending habits, and preferences through natural conversation. The application features a clean, modern interface with real-time chat capabilities and smart recommendation algorithms.
 
+[▶️ Watch Demo Video](https://drive.google.com/uc?export=download&id=1r_xslYHw_gbQ31ioz4TrwdgpBU_bxaeN)
+
 ## ✨ Features
 
 ### 🤖 **Intelligent Conversational AI**
