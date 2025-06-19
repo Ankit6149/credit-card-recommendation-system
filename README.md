@@ -1,36 +1,129 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# CardXpert AI - Credit Card Recommendation Chatbot
 
-## Getting Started
+A modern, AI-powered conversational assistant that provides personalized credit card recommendations based on user financial profiles and spending patterns.
 
-First, run the development server:
+## 🎯 Overview
+
+CardXpert AI is an intelligent chatbot built with Next.js and Google Gemini AI that helps users find the perfect credit card by analyzing their income, spending habits, and preferences through natural conversation. The application features a clean, modern interface with real-time chat capabilities and smart recommendation algorithms.
+
+## ✨ Features
+
+### 🤖 **Intelligent Conversational AI**
+- **Natural Language Processing** - Powered by Google Gemini AI for human-like conversations
+- **Smart Income Detection** - Automatically detects salary ranges from various input formats (50k, 75000, 1.2 lakh)
+- **Context-Aware Responses** - Maintains conversation history and builds user profile progressively
+- **Fallback System** - Mock responses ensure functionality even when AI service is unavailable
+
+### 💳 **Personalized Recommendations**
+- **Dynamic Card Matching** - Intelligent scoring algorithm matches cards based on user profile
+- **Multi-Factor Analysis** - Considers income, spending habits, preferred benefits, and fee preferences
+- **Real-Time Profile Building** - Visual display of extracted user preferences as conversation progresses
+- **Smart Recommendations** - Shows top 2-3 cards with match percentages and detailed reasoning
+
+### 🎨 **Modern User Interface**
+- **Floating Input Bar** - Fixed bottom input that stays accessible while scrolling
+- **Responsive Design** - Optimized for desktop, tablet, and mobile devices
+- **Real-Time Chat** - Smooth message flow with typing indicators and auto-scroll
+- **Profile Visualization** - Color-coded badges showing detected user preferences
+- **Loading States** - Elegant loading animations and error handling
+
+### 💾 **Data Management**
+- **Local Storage Persistence** - Chat history and user profile saved locally
+- **Dynamic Data Loading** - Loads credit card data from JSON files
+- **Profile Extraction** - Automatically extracts and categorizes user information
+- **Session Management** - Maintains conversation state across page refreshes
+
+## 🛠️ Technology Stack
+
+### **Frontend**
+- **Next.js 14** - React framework with App Router
+- **React 18** - Component-based UI library
+- **Tailwind CSS** - Utility-first CSS framework for styling
+- **JavaScript (ES6+)** - Modern JavaScript features
+
+### **AI & Backend**
+- **Google Gemini AI** - Conversational AI for natural language processing
+- **Next.js API Routes** - Serverless API endpoints
+- **Google Generative AI SDK** - Official SDK for Gemini integration
+
+### **Data & Storage**
+- **Local Storage** - Client-side data persistence
+- **JSON Files** - Credit card database storage
+- **Dynamic Imports** - Efficient data loading
+
+### **Development Tools**
+- **npm** - Package management
+- **Git** - Version control
+- **VS Code** - Development environment
+
+## 📁 Project Structure
+
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+credit-card-recommendation-system/
+├── app/
+│   ├── components/           # Reusable UI components
+│   ├── layout.js             # Root layout
+│   ├── page.js               # Home page
+│   ├── globals.css           # Global CSS
+│   └── cardlist/             # Dynamic route for card details
+│       └── [cardId]/page.js  # Individual card detail page
+├── public/                   # Public assets like images and favicon
+├── scripts/                  # Data processing or scraping scripts
+│   └── scrapeCards.js        # Example scraper for card data
+├── data/
+│   └── cardsData.json        # JSON file with credit card information
+├── styles/                   # Additional styles if any
+├── utils/                    # Utility/helper functions
+│   └── index.js
+├── .gitignore
+├── package.json
+├── README.md
+└── next.config.js            # Next.js configuration
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### **Modifying Conversation Flow**
+Update `app/api/chat/route.js` to customize:
+- Question sequence
+- Response patterns
+- Data extraction logic
+- Recommendation triggers
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+### **Styling Customization**
+Tailwind CSS classes can be modified in components for:
+- Color schemes (primary-600, accent-600)
+- Layout adjustments
+- Animation effects
+- Responsive breakpoints
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🌟 Advanced Features
 
-## Learn More
+### **Fallback System**
+- Mock responses when AI service unavailable
+- Graceful error handling
+- Consistent user experience
+- Automatic retry mechanisms
 
-To learn more about Next.js, take a look at the following resources:
+### **Performance Optimization**
+- Lazy loading of components
+- Efficient state management
+- Minimal re-renders
+- Optimized API calls
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### **Accessibility**
+- Keyboard navigation support
+- Screen reader compatibility
+- Focus management
+- Semantic HTML structure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🔮 Future Enhancements
 
-## Deploy on Vercel
+- **Voice Input/Output** - Speech recognition and synthesis
+- **Multi-language Support** - Conversations in regional languages
+- **Advanced Analytics** - User interaction tracking and insights
+- **Bank Integration** - Real-time card availability and application links
+- **Comparison Tools** - Side-by-side card comparisons
+- **Credit Score Integration** - Personalized eligibility checking
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
