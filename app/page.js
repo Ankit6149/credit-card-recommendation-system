@@ -7,9 +7,8 @@ function page() {
         <span className="text-accent-500">CardXpert:</span> Credit Card
         Recommender
       </h1>
-      
+
       <div className="flex flex-col lg:flex-col-reverse justify-between flex-1 gap-8 lg:gap-0">
-        
         <div className="flex flex-col sm:flex-row w-full gap-4 sm:gap-6 lg:gap-10 items-center justify-center lg:justify-start order-2 lg:order-1">
           <Link
             href="/cardsList"
@@ -17,9 +16,9 @@ function page() {
           >
             Explore Credit Cards
           </Link>
-          
+
           <p className="text-gray-600 font-medium">OR</p>
-          
+
           <Link
             href="/chatbot"
             className="w-full sm:w-auto bg-accent-800 px-6 py-3 rounded-3xl hover:bg-accent-700 hover:rounded-2xl transition-all text-center text-white font-medium"
@@ -31,12 +30,12 @@ function page() {
         <div className="flex flex-col gap-4 sm:gap-5 lg:gap-6 my-6 sm:my-8 lg:my-10 order-1 lg:order-2">
           <p className="text-sm sm:text-base lg:text-lg leading-relaxed text-gray-700">
             Choosing the right credit card can be overwhelming with so many
-            options, rewards, and hidden terms. That's where{" "}
-            <b className="text-primary-500">CardXpert</b> comes in. We've built
-            a powerful, AI-driven credit card recommendation system designed to
-            simplify your decision-making process.
+            options, rewards, and hidden terms. That&apos;s where{" "}
+            <b className="text-primary-500">CardXpert</b> comes in. We&apos;ve
+            built a powerful, AI-driven credit card recommendation system
+            designed to simplify your decision-making process.
           </p>
-          
+
           <p className="text-sm sm:text-base lg:text-lg leading-relaxed text-gray-700">
             Our intelligent agent engages you in a short, personalized Q&A
             session — asking about your income, spending habits, reward
@@ -44,7 +43,6 @@ function page() {
             credit cards from major Indian banks and fintech issuers to suggest
             the ones that truly match your needs.
           </p>
-          
           <p className="text-sm sm:text-base lg:text-lg leading-relaxed text-gray-700">
             Whether you love cashback, travel rewards, or lounge access, we help
             you find the perfect card — without the noise.
