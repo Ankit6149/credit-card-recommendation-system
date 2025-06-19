@@ -233,7 +233,7 @@ export default function Recommendations({ userProfile, show }) {
                 </div>
               </div>
               <Link
-                href={`/cardlist/${card.slug}`}
+                href={`/cardsList/${card.slug}`}
                 className="bg-gradient-to-r from-primary-600 to-accent-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:from-primary-700 hover:to-accent-700 transition-all duration-300"
               >
                 View Details
