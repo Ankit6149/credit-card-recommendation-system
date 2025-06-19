@@ -285,7 +285,7 @@ export default function CreditCardDetail({ card }) {
           <div className="border-t border-gray-200 p-6 bg-gradient-to-r from-primary-200 to-primary-800">
             <div className="flex space-x-4">
               <Link
-                href="/cardlist"
+                href="/cardsList"
                 className="flex-1 bg-gradient-to-r from-accent-700 to-accent-800 text-white py-3 px-6 rounded-lg font-medium text-center transition-all duration-300 hover:from-accent-800 hover:to-accent-900 shadow-lg"
               >
                 Back to All Cards
