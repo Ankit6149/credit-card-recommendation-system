@@ -63,25 +63,57 @@ CardXpert AI is an intelligent chatbot built with Next.js and Google Gemini AI t
 
 ```bash
 credit-card-recommendation-system/
-├── app/
-│   ├── components/           # Reusable UI components
-│   ├── layout.js             # Root layout
-│   ├── page.js               # Home page
-│   ├── globals.css           # Global CSS
-│   └── cardlist/             # Dynamic route for card details
-│       └── [cardId]/page.js  # Individual card detail page
-├── public/                   # Public assets like images and favicon
-├── scripts/                  # Data processing or scraping scripts
-│   └── scrapeCards.js        # Example scraper for card data
-├── data/
-│   └── cardsData.json        # JSON file with credit card information
-├── styles/                   # Additional styles if any
-├── utils/                    # Utility/helper functions
-│   └── index.js
-├── .gitignore
-├── package.json
-├── README.md
-└── next.config.js            # Next.js configuration
+├── app/                        # Next.js app directory for routing and API
+│ ├── api/
+│ │ └── chat/route.js           # API endpoint for handling chat requests
+│ ├── cardsList/
+│ │ ├── [cardId]/page.js        # Dynamic route: renders card detail by ID
+│ │ └── page.js                 # Page to list all available credit cards
+│ ├── chatbot/page.js           # Page that renders the chatbot interface
+│
+├── components/                 # Reusable React components
+│ ├── chatbotUI/
+│ │ ├── ChatInterface.js        # Main chatbot container UI
+│ │ ├── MessageBubble.js        # UI component for chat messages
+│ │ ├── Recommendations.js      # Displays card recommendations
+│ │ ├── UserInput.js            # Handles user input in chat
+│ │ └── UserProfile.js          # Form for collecting user profile data
+│ ├── CreditCardDetail.js       # Component to display credit card details
+│ ├── CreditCardFlashcard.js    # Flashcard-style card previews
+│ ├── Logo.js                   # App logo component
+│ └── Navigation.js             # Top navigation bar
+│
+├── lib/                        # Utility and backend service helpers
+│ ├── genai.js                  # Google GenAI integration for smart replies
+│ └── helper.js                 # Common helper functions
+│
+├── public/                     # Static files accessible via the browser
+│ └── data/
+│ ├── file.svg
+│ ├── globe.svg
+│ ├── icon.png
+│ ├── logo1.png
+│ ├── logo2.png
+│ ├── logo3.png
+│ ├── logo4.png
+│ ├── next.svg
+│ ├── vercel.svg
+│ └── window.svg 
+│
+├── favicon.ico                 # Browser tab icon
+├── globals.css                 # Global styles used across the app
+├── layout.js                   # Root layout component for the app
+├── loading.js                  # Loading spinner/screen component
+├── page.js                     # Default homepage component
+│
+├── .gitignore                  # Git ignored files and folders
+├── README.md                   # Project documentation
+├── eslint.config.mjs           # ESLint config for code linting
+├── jsconfig.json               # JS project config (for path aliases, etc.)
+├── next.config.mjs             # Next.js configuration file
+├── package-lock.json           # Auto-generated for locking dependency versions
+├── package.json                # Project metadata and dependencies
+├── postcss.config.mjs          # PostCSS configuration
 ```
 
 ### **Modifying Conversation Flow**
