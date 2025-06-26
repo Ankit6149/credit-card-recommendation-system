@@ -70,22 +70,29 @@ credit-card-recommendation-system/
 │ │ ├── [cardId]/page.js        # Dynamic route: renders card detail by ID
 │ │ └── page.js                 # Page to list all available credit cards
 │ ├── chatbot/page.js           # Page that renders the chatbot interface
-│
-├── components/                 # Reusable React components
-│ ├── chatbotUI/
-│ │ ├── ChatInterface.js        # Main chatbot container UI
-│ │ ├── MessageBubble.js        # UI component for chat messages
-│ │ ├── Recommendations.js      # Displays card recommendations
-│ │ ├── UserInput.js            # Handles user input in chat
-│ │ └── UserProfile.js          # Form for collecting user profile data
-│ ├── CreditCardDetail.js       # Component to display credit card details
-│ ├── CreditCardFlashcard.js    # Flashcard-style card previews
-│ ├── Logo.js                   # App logo component
-│ └── Navigation.js             # Top navigation bar
-│
-├── lib/                        # Utility and backend service helpers
+│ │
+│ ├── favicon.ico                 # Browser tab icon
+│ ├── globals.css                 # Global styles used across the app
+│ ├── layout.js                   # Root layout component for the app
+│ ├── loading.js                  # Loading spinner/screen component
+│ ├── page.js                     # Default homepage component
+│ │
+│ ├── components/                 # Reusable React components
+│ │ ├── chatbotUI/
+│ │ │ ├── ChatInterface.js        # Main chatbot container UI
+│ │ │ ├── MessageBubble.js        # UI component for chat messages
+│ │ │ ├── Recommendations.js      # Displays card recommendations
+│ │ │ ├── UserInput.js            # Handles user input in chat
+│ │ │ └── UserProfile.js          # Form for collecting user profile data
+│ │ ├── CreditCardDetail.js       # Component to display credit card details
+│ │ ├── CreditCardFlashcard.js    # Flashcard-style card previews
+│ │ ├── Logo.js                   # App logo component
+│ │ └── Navigation.js             # Top navigation bar
+│ │
+│ ├── lib/                        # Utility and backend service helpers
 │ ├── genai.js                  # Google GenAI integration for smart replies
 │ └── helper.js                 # Common helper functions
+│
 │
 ├── public/                     # Static files accessible via the browser
 │ └── data/
@@ -100,11 +107,6 @@ credit-card-recommendation-system/
 │ ├── vercel.svg
 │ └── window.svg 
 │
-├── favicon.ico                 # Browser tab icon
-├── globals.css                 # Global styles used across the app
-├── layout.js                   # Root layout component for the app
-├── loading.js                  # Loading spinner/screen component
-├── page.js                     # Default homepage component
 │
 ├── .gitignore                  # Git ignored files and folders
 ├── README.md                   # Project documentation
