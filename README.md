@@ -63,19 +63,13 @@ CardXpert AI is an intelligent chatbot built with Next.js and Google Gemini AI t
 
 ```bash
 credit-card-recommendation-system/
-├── app/                        # Next.js app directory for routing and API
+├── app/                          # Next.js app directory for routing and API
 │ ├── api/
-│ │ └── chat/route.js           # API endpoint for handling chat requests
+│ │ └── chat/route.js             # API endpoint for handling chat requests
 │ ├── cardsList/
-│ │ ├── [cardId]/page.js        # Dynamic route: renders card detail by ID
-│ │ └── page.js                 # Page to list all available credit cards
-│ ├── chatbot/page.js           # Page that renders the chatbot interface
-│ │
-│ ├── favicon.ico                 # Browser tab icon
-│ ├── globals.css                 # Global styles used across the app
-│ ├── layout.js                   # Root layout component for the app
-│ ├── loading.js                  # Loading spinner/screen component
-│ ├── page.js                     # Default homepage component
+│ │ ├── [cardId]/page.js          # Dynamic route: renders card detail by ID
+│ │ └── page.js                   # Page to list all available credit cards
+│ ├── chatbot/page.js             # Page that renders the chatbot interface
 │ │
 │ ├── components/                 # Reusable React components
 │ │ ├── chatbotUI/
@@ -90,11 +84,16 @@ credit-card-recommendation-system/
 │ │ └── Navigation.js             # Top navigation bar
 │ │
 │ ├── lib/                        # Utility and backend service helpers
-│ ├── genai.js                  # Google GenAI integration for smart replies
-│ └── helper.js                 # Common helper functions
+│ │ ├── genai.js                  # Google GenAI integration for smart replies
+│ │ └──helper.js                  # Common helper functions
+│ │
+│ ├── favicon.ico                 # Browser tab icon
+│ ├── globals.css                 # Global styles used across the app
+│ ├── layout.js                   # Root layout component for the app
+│ ├── loading.js                  # Loading spinner/screen component
+│ └── page.js                     # Default homepage component
 │
-│
-├── public/                     # Static files accessible via the browser
+├── public/                       # Static files accessible via the browser
 │ └── data/
 │ ├── file.svg
 │ ├── globe.svg
@@ -107,15 +106,14 @@ credit-card-recommendation-system/
 │ ├── vercel.svg
 │ └── window.svg 
 │
-│
-├── .gitignore                  # Git ignored files and folders
-├── README.md                   # Project documentation
-├── eslint.config.mjs           # ESLint config for code linting
-├── jsconfig.json               # JS project config (for path aliases, etc.)
-├── next.config.mjs             # Next.js configuration file
-├── package-lock.json           # Auto-generated for locking dependency versions
-├── package.json                # Project metadata and dependencies
-├── postcss.config.mjs          # PostCSS configuration
+├── .gitignore                    # Git ignored files and folders
+├── README.md                     # Project documentation
+├── eslint.config.mjs             # ESLint config for code linting
+├── jsconfig.json                 # JS project config (for path aliases, etc.)
+├── next.config.mjs               # Next.js configuration file
+├── package-lock.json             # Auto-generated for locking dependency versions
+├── package.json                  # Project metadata and dependencies
+├── postcss.config.mjs            # PostCSS configuration
 ```
 
 ### **Modifying Conversation Flow**
