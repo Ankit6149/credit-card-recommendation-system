@@ -94,7 +94,7 @@ credit-card-recommendation-system/
 │ └── page.js                     # Default homepage component
 │
 ├── public/                       # Static files accessible via the browser
-│ └── data/
+│ ├── data/
 │ ├── file.svg
 │ ├── globe.svg
 │ ├── icon.png
