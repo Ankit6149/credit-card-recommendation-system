@@ -8,8 +8,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 // When the model output cannot be parsed we fall back to this very
 // generic reply so the UI still has something meaningful to show.
 const FALLBACK_REPLY =
-  "I'm here to chat about anything or help with credit cards. Ask me anything, and when you're
-ready for recommendations just share a bit about your income and spending habits.";
+  "I'm here to chat about anything or help with credit cards. Ask me anything, and when you're ready for recommendations just share a bit about your income and spending habits.";
 
 // Allowed intents returned by the AI. `general_chat` covers small talk,
 // off-topic responses, and anything that doesn't fit the other finance-
@@ -92,9 +91,7 @@ function normalizeList(values = []) {
 function detectIncomeRange(rawText = "") {
   const text = normalizeText(rawText).replace(/,/g, "").replace(/\s+/g, " ");
 
-  if (
-    /(<\s*20k|below\s*20k|under\s*20k|less than\s*20000)/.test(text)
-  ) {
+  if (/(<\s*20k|below\s*20k|under\s*20k|less than\s*20000)/.test(text)) {
     return "<20k";
   }
   if (/20k\s*-\s*50k|20000\s*-\s*50000/.test(text)) {
@@ -177,13 +174,13 @@ function normalizeProfileShape(profile = {}) {
 
   if (Array.isArray(profile.spending)) {
     normalized.spending = normalizeList(
-      profile.spending.map((item) => normalizeText(item).trim())
+      profile.spending.map((item) => normalizeText(item).trim()),
     );
   }
 
   if (Array.isArray(profile.benefits)) {
     normalized.benefits = normalizeList(
-      profile.benefits.map((item) => normalizeText(item).trim())
+      profile.benefits.map((item) => normalizeText(item).trim()),
     );
   }
 
@@ -202,19 +199,25 @@ export function mergeProfiles(baseProfile = {}, updates = {}) {
   return {
     ...base,
     ...patch,
-    spending: normalizeList([...(base.spending || []), ...(patch.spending || [])]),
-    benefits: normalizeList([...(base.benefits || []), ...(patch.benefits || [])]),
+    spending: normalizeList([
+      ...(base.spending || []),
+      ...(patch.spending || []),
+    ]),
+    benefits: normalizeList([
+      ...(base.benefits || []),
+      ...(patch.benefits || []),
+    ]),
   };
 }
 
 export function isProfileComplete(profile = {}) {
   return Boolean(
     profile.income &&
-      Array.isArray(profile.spending) &&
-      profile.spending.length > 0 &&
-      Array.isArray(profile.benefits) &&
-      profile.benefits.length > 0 &&
-      profile.feePreference
+    Array.isArray(profile.spending) &&
+    profile.spending.length > 0 &&
+    Array.isArray(profile.benefits) &&
+    profile.benefits.length > 0 &&
+    profile.feePreference,
   );
 }
 
@@ -222,7 +225,12 @@ async function loadCardsCatalog() {
   if (cardsCache) return cardsCache;
 
   try {
-    const cardsFilePath = path.join(process.cwd(), "public", "data", "cardsData.json");
+    const cardsFilePath = path.join(
+      process.cwd(),
+      "public",
+      "data",
+      "cardsData.json",
+    );
     const cardsRaw = await fs.readFile(cardsFilePath, "utf8");
     const cards = JSON.parse(cardsRaw);
     cardsCache = Array.isArray(cards) ? cards : [];
@@ -319,7 +327,12 @@ function normalizeModelPayload(payload) {
   };
 }
 
-function buildPrompt({ messages, currentProfile, heuristicProfile, cardsKnowledge }) {
+function buildPrompt({
+  messages,
+  currentProfile,
+  heuristicProfile,
+  cardsKnowledge,
+}) {
   return `${DOMAIN_SYSTEM_PROMPT}
 
 Current profile:
@@ -349,8 +362,8 @@ export async function createChatCompletion({
   const cards = await loadCardsCatalog();
 
   const latestUserMessage =
-    [...messages].reverse().find((message) => message.role === "user")?.content ||
-    "";
+    [...messages].reverse().find((message) => message.role === "user")
+      ?.content || "";
   const heuristicProfile = extractProfileFromText(latestUserMessage);
   const normalizedCurrentProfile = normalizeProfileShape(currentProfile);
 
@@ -374,7 +387,8 @@ export async function createChatCompletion({
 
     if (
       modelPayload.reply === FALLBACK_REPLY ||
-      modelPayload.intent === "profile_collection" && !Object.keys(modelPayload.profile_updates).length
+      (modelPayload.intent === "profile_collection" &&
+        !Object.keys(modelPayload.profile_updates).length)
     ) {
       // Try one more time if we clearly fell back due to parse issues
       const retryPrompt =
@@ -391,10 +405,14 @@ export async function createChatCompletion({
     }
   }
 
-  const mergedUpdates = mergeProfiles(heuristicProfile, modelPayload.profile_updates);
+  const mergedUpdates = mergeProfiles(
+    heuristicProfile,
+    modelPayload.profile_updates,
+  );
   const mergedProfile = mergeProfiles(normalizedCurrentProfile, mergedUpdates);
   const shouldShowRecommendations =
-    modelPayload.should_show_recommendations || isProfileComplete(mergedProfile);
+    modelPayload.should_show_recommendations ||
+    isProfileComplete(mergedProfile);
 
   return {
     message: modelPayload.reply,
