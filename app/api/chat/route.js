@@ -2,21 +2,29 @@ import { createChatCompletion } from "../../lib/genai";
 
 export async function POST(request) {
   try {
-    const { messages } = await request.json();
+    const { messages, currentProfile } = await request.json();
 
-    console.log("Received messages:", messages); // Debug log
+    console.log(
+      "Received messages:",
+      messages,
+      "currentProfile:",
+      currentProfile,
+    );
 
     // Validate messages array
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return Response.json(
         { error: "Invalid message format" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     try {
       // Try Gemini API first
-      const aiResponse = await createChatCompletion(messages);
+      const aiResponse = await createChatCompletion({
+        messages,
+        currentProfile,
+      });
       console.log("Sending response:", aiResponse); // Debug log
       return Response.json({ message: aiResponse });
     } catch (geminiError) {
@@ -32,7 +40,7 @@ export async function POST(request) {
     // Final fallback
     return Response.json(
       { error: "Sorry, I encountered an error. Please try again." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

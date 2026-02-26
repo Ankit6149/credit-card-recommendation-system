@@ -23,7 +23,7 @@ export default function ChatInterface() {
       const greeting = {
         role: "assistant",
         content:
-          "Hi! I'm CardXpert. What's your monthly income? (e.g., 50k, 75000, 1.2 lakh)",
+          "Hi! I'm CardXpert — your personal chat assistant. You can ask me about credit cards, finance or just have a casual conversation. How can I help you today?",
         timestamp: new Date().toISOString(),
       };
       setMessages([greeting]);
@@ -200,6 +200,7 @@ export default function ChatInterface() {
             role: msg.role,
             content: msg.content,
           })),
+          currentProfile: updatedProfile,
         }),
       });
 
@@ -209,22 +210,34 @@ export default function ChatInterface() {
         throw new Error(data.error);
       }
 
+      // the backend now returns an object with a `message` string plus
+      // metadata like `mergedProfile` and `shouldShowRecommendations`.
+      const payload = data.message;
+      const replyText =
+        typeof payload === "string" ? payload : payload.message || "";
+
       const aiMessage = {
         role: "assistant",
-        content: data.message,
+        content: replyText,
         timestamp: new Date().toISOString(),
       };
 
       setMessages((prev) => [...prev, aiMessage]);
 
-      // Check if we should show recommendations
-      if (
-        data.message.includes("analyze your profile") ||
-        isProfileComplete(updatedProfile)
-      ) {
-        setTimeout(() => {
-          setShowRecommendations(true);
-        }, 2000);
+      // if the model returned a merged profile, sync to local state/storage
+      if (payload && typeof payload === "object" && payload.mergedProfile) {
+        setUserProfile(payload.mergedProfile);
+        localStorage.setItem(
+          "userProfile",
+          JSON.stringify(payload.mergedProfile),
+        );
+
+        if (payload.shouldShowRecommendations) {
+          setTimeout(() => setShowRecommendations(true), 2000);
+        }
+      } else if (isProfileComplete(updatedProfile)) {
+        // fallback heuristic
+        setTimeout(() => setShowRecommendations(true), 2000);
       }
     } catch (error) {
       console.error("Error:", error);
@@ -246,7 +259,7 @@ export default function ChatInterface() {
       {
         role: "assistant",
         content:
-          "Hi! I'm CardXpert. What's your monthly income? (e.g., 50k, 75000, 1.2 lakh)",
+          "Hi! I'm CardXpert — your personal chat assistant. You can ask me about credit cards, finance or just have a casual conversation. How can I help you today?",
         timestamp: new Date().toISOString(),
       },
     ]);
