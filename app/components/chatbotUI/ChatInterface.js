@@ -80,6 +80,7 @@ export default function ChatInterface() {
   const [userProfile, setUserProfile] = useState({});
   const [showRecommendations, setShowRecommendations] = useState(false);
   const [chatMode, setChatMode] = useState("auto");
+  const scrollRef = useRef(null);
   const endRef = useRef(null);
 
   const quickPrompts = useMemo(
@@ -120,8 +121,9 @@ export default function ChatInterface() {
   }, [chatMode]);
 
   useEffect(() => {
+    if (!scrollRef.current) return;
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-  }, [messages, isLoading]);
+  }, [messages, isLoading, showRecommendations]);
 
   const sendMessage = async (message) => {
     if (!message.trim() || isLoading) return;
@@ -198,9 +200,9 @@ export default function ChatInterface() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-5xl">
-      <div className="overflow-hidden rounded-2xl border border-primary-700/60 bg-primary-900/85 shadow-[0_16px_45px_rgba(9,14,22,0.45)]">
-        <header className="border-b border-primary-700/60 bg-primary-900/95 px-4 py-4 sm:px-6">
+    <div className="mx-auto h-full w-full max-w-5xl">
+      <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-primary-700/60 bg-primary-900/85 shadow-[0_16px_45px_rgba(9,14,22,0.45)]">
+        <header className="shrink-0 border-b border-primary-700/60 bg-primary-900/95 px-4 py-4 sm:px-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <h2 className="text-xl font-semibold text-primary-50">CardXpert Pro</h2>
@@ -231,7 +233,7 @@ export default function ChatInterface() {
           </div>
         </header>
 
-        <div className="border-b border-primary-700/50 bg-primary-900/60 px-4 py-3 sm:px-6">
+        <div className="shrink-0 border-b border-primary-700/50 bg-primary-900/60 px-4 py-3 sm:px-6">
           <div className="flex flex-wrap gap-2">
             {quickPrompts.map((prompt) => (
               <button
@@ -246,9 +248,11 @@ export default function ChatInterface() {
           </div>
         </div>
 
-        <UserProfile userProfile={userProfile} onClear={clearChat} />
+        <div className="shrink-0">
+          <UserProfile userProfile={userProfile} onClear={clearChat} />
+        </div>
 
-        <section>
+        <section ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto">
           {messages.map((message, index) => (
             <MessageBubble key={index} message={message} />
           ))}
@@ -274,14 +278,13 @@ export default function ChatInterface() {
             </article>
           )}
 
+          <Recommendations userProfile={userProfile} show={showRecommendations} />
           <div ref={endRef} />
         </section>
 
-        <div className="px-4 sm:px-6">
+        <div className="shrink-0 border-t border-primary-700/60 bg-primary-900/92 px-4 py-3 sm:px-6">
           <UserInput onSendMessage={sendMessage} disabled={isLoading} />
         </div>
-
-        <Recommendations userProfile={userProfile} show={showRecommendations} />
       </div>
     </div>
   );

@@ -83,7 +83,7 @@ export default function CreditCardDetail({ card, source = "local" }) {
 
               <div className="relative h-24 overflow-hidden rounded-2xl border border-primary-700/50 bg-primary-900/70">
                 <Image
-                  src="/logo2.png"
+                  src={card.image || "/cardxpert-card.svg"}
                   alt={`${card.name} card image`}
                   fill
                   className="object-contain p-4"
@@ -238,3 +238,4 @@ export default function CreditCardDetail({ card, source = "local" }) {
     </div>
   );
 }
+

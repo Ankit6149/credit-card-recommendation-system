@@ -1,0 +1,23 @@
+<svg width="380" height="96" viewBox="0 0 380 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="cx_chip" x1="10" y1="8" x2="82" y2="86" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#5E82A6"/>
+      <stop offset="1" stop-color="#C69963"/>
+    </linearGradient>
+    <linearGradient id="cx_text" x1="102" y1="20" x2="360" y2="84" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F4ECE1"/>
+      <stop offset="1" stop-color="#DDC2A2"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="8" y="10" width="76" height="76" rx="20" fill="#141C24" stroke="#3C546C" stroke-width="2"/>
+  <rect x="16" y="18" width="60" height="60" rx="14" fill="url(#cx_chip)"/>
+  <rect x="26" y="34" width="40" height="24" rx="6" fill="#1B2631" fill-opacity="0.9"/>
+  <rect x="30" y="38" width="16" height="3" rx="1.5" fill="#D4DEE7"/>
+  <rect x="30" y="43" width="24" height="3" rx="1.5" fill="#B7C7D7"/>
+  <rect x="30" y="48" width="12" height="3" rx="1.5" fill="#C69963"/>
+  <path d="M50 63L56 57L62 63" stroke="#F4ECE1" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <text x="104" y="54" fill="url(#cx_text)" font-size="35" font-weight="700" font-family="Segoe UI, Trebuchet MS, sans-serif">CardXpert Pro</text>
+  <text x="106" y="74" fill="#99B0C7" font-size="13" letter-spacing="1" font-family="Segoe UI, Trebuchet MS, sans-serif">General AI chat with on-demand credit-card expertise</text>
+</svg>

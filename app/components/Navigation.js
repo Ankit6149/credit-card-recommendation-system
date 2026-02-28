@@ -15,19 +15,18 @@ function isActive(pathname, item) {
   return pathname === item.href || pathname.startsWith(`${item.href}/`);
 }
 
-function itemClass(active) {
+function desktopItemClass(active) {
   if (active) {
-    return "rounded-xl bg-gradient-to-r from-primary-600 to-accent-600 px-4 py-2 text-sm font-semibold text-primary-50 shadow";
+    return "inline-flex items-center rounded-xl bg-gradient-to-r from-primary-600 to-accent-600 px-5 py-2.5 text-sm font-semibold text-primary-50 shadow-md shadow-primary-950/30";
   }
-
-  return "rounded-xl px-4 py-2 text-sm font-medium text-primary-200 transition hover:bg-primary-800/70 hover:text-accent-100";
+  return "inline-flex items-center rounded-xl px-5 py-2.5 text-sm font-medium text-primary-200 transition-all duration-300 hover:bg-primary-800/75 hover:text-accent-100";
 }
 
 function mobileItemClass(active) {
   if (active) {
     return "block rounded-xl bg-gradient-to-r from-primary-600 to-accent-600 px-4 py-3 text-center text-sm font-semibold text-primary-50";
   }
-  return "block rounded-xl border border-primary-700/60 bg-primary-900/70 px-4 py-3 text-center text-sm font-medium text-primary-100 transition hover:border-accent-500/60 hover:text-accent-100";
+  return "block rounded-xl border border-primary-700/60 bg-primary-900/70 px-4 py-3 text-center text-sm font-medium text-primary-100 transition-all duration-300 hover:border-accent-500/60 hover:text-accent-100";
 }
 
 export default function Navigation() {
@@ -36,10 +35,10 @@ export default function Navigation() {
 
   return (
     <nav className="relative flex items-center">
-      <ul className="hidden sm:flex items-center gap-2 rounded-2xl border border-primary-700/40 bg-primary-900/45 p-2 backdrop-blur-sm">
+      <ul className="hidden sm:flex items-center gap-1.5 rounded-2xl border border-primary-700/45 bg-primary-900/50 p-1.5 backdrop-blur-sm">
         {NAV_ITEMS.map((item) => (
-          <li key={item.href}>
-            <Link href={item.href} className={itemClass(isActive(pathname, item))}>
+          <li key={item.href} className="leading-none">
+            <Link href={item.href} className={desktopItemClass(isActive(pathname, item))}>
               {item.label}
             </Link>
           </li>
@@ -49,7 +48,7 @@ export default function Navigation() {
       <div className="sm:hidden">
         <button
           onClick={() => setIsMenuOpen((value) => !value)}
-          className="grid h-10 w-10 place-items-center rounded-xl border border-primary-700/60 bg-primary-900/75 text-primary-100 transition hover:border-accent-500/60 hover:text-accent-100"
+          className="grid h-10 w-10 place-items-center rounded-xl border border-primary-700/60 bg-primary-900/75 text-primary-100 transition-all duration-300 hover:border-accent-500/60 hover:text-accent-100"
           aria-label="Toggle navigation menu"
         >
           <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

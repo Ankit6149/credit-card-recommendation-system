@@ -100,3 +100,31 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans), "Segoe UI", "Trebuchet MS", sans-serif;
 }
+
+html {
+  scroll-behavior: smooth;
+}
+
+a,
+button {
+  transition-property: color, background-color, border-color, opacity, transform, box-shadow;
+  transition-duration: 240ms;
+  transition-timing-function: ease;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .page-enter {
+    animation: pageEnter 380ms ease;
+  }
+}
+
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.995);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

@@ -15,15 +15,15 @@ const SIDEBAR_LINKS = [
 
 export default function ChatbotPage() {
   return (
-    <div className="relative min-h-screen overflow-hidden bg-primary-900 pb-8 pt-6">
+    <div className="relative h-[100dvh] overflow-hidden bg-primary-900">
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute -left-24 top-12 h-80 w-80 rounded-full bg-primary-500/15 blur-3xl"></div>
         <div className="absolute -right-24 top-24 h-96 w-96 rounded-full bg-accent-500/15 blur-3xl"></div>
       </div>
 
-      <div className="relative mx-auto w-full max-w-7xl px-4 sm:px-6">
-        <div className="grid gap-4 lg:grid-cols-[250px_minmax(0,1fr)]">
-          <aside className="h-fit rounded-2xl border border-primary-700/55 bg-primary-900/88 p-4 shadow-[0_16px_45px_rgba(9,14,22,0.45)] lg:sticky lg:top-6">
+      <div className="relative mx-auto h-full w-full max-w-7xl px-4 py-3 sm:px-6">
+        <div className="grid h-full min-h-0 gap-4 lg:grid-cols-[270px_minmax(0,1fr)]">
+          <aside className="hidden min-h-0 flex-col rounded-2xl border border-primary-700/55 bg-primary-900/88 p-4 shadow-[0_16px_45px_rgba(9,14,22,0.45)] lg:flex">
             <p className="mb-3 text-xs uppercase tracking-[0.2em] text-primary-300">
               Navigation
             </p>
@@ -46,12 +46,12 @@ export default function ChatbotPage() {
             <div className="mt-4 rounded-xl border border-primary-700/60 bg-primary-800/55 p-3">
               <p className="text-xs uppercase tracking-wide text-primary-300">Workspace</p>
               <p className="mt-1 text-sm text-primary-100">
-                Chat modes and prompts are available in the chat header.
+                Modes stay pinned at the top while the chat thread scrolls.
               </p>
             </div>
           </aside>
 
-          <section>
+          <section className="min-h-0">
             <ChatInterface />
           </section>
         </div>

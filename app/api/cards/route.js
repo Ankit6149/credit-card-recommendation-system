@@ -47,7 +47,7 @@ function toInternalCard(raw = {}) {
     reward_rate: normalizeString(raw.reward_rate || raw.rewardRate, "N/A"),
     eligibility: normalizeString(raw.eligibility, "N/A"),
     perks,
-    image: normalizeString(raw.image, "/logo2.png"),
+    image: normalizeString(raw.image, "/cardxpert-card.svg"),
     affiliate_link: normalizeString(raw.affiliate_link || raw.affiliateLink, "#"),
     joining_fee_waiver: normalizeString(raw.joining_fee_waiver || raw.joiningFeeWaiver, "NA"),
     annual_fee_waiver: normalizeString(raw.annual_fee_waiver || raw.annualFeeWaiver, "NA"),
@@ -250,3 +250,4 @@ export async function GET(request) {
     );
   }
 }
+
