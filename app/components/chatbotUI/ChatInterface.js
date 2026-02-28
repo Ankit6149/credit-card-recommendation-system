@@ -9,9 +9,16 @@ import Recommendations from "./Recommendations";
 const STARTER_MESSAGE = {
   role: "assistant",
   content:
-    "Hi, I am CardXpert Pro. We can chat about any topic. Ask for credit-card help whenever you want, and I will switch to card guidance.",
+    "Hello. I am CardXpert Pro. You can chat with me on any topic, and when you ask for card advice I will switch to recommendation mode.",
   timestamp: new Date().toISOString(),
 };
+
+const QUICK_PROMPTS = [
+  "What can you teach me in finance?",
+  "How does credit score work?",
+  "Recommend a low-fee travel credit card",
+  "Create a monthly budgeting plan",
+];
 
 function normalizeList(values = []) {
   return [...new Set(values.filter(Boolean))];
@@ -164,53 +171,102 @@ export default function ChatInterface() {
 
   return (
     <>
-      <div className="max-w-4xl mx-auto bg-primary-950 rounded-lg shadow-lg overflow-hidden mb-20">
-        <div className="bg-gradient-to-r from-primary-600 to-accent-600 text-primary-50 p-6">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold">CardXpert Pro</h1>
-              <p className="text-primary-100">
-                General AI chat with on-demand credit-card expertise
-              </p>
+      <div className="relative mx-auto w-full max-w-6xl pb-32">
+        <div className="pointer-events-none absolute -left-16 -top-16 h-56 w-56 rounded-full bg-primary-600/20 blur-3xl"></div>
+        <div className="pointer-events-none absolute -bottom-20 -right-12 h-64 w-64 rounded-full bg-accent-500/20 blur-3xl"></div>
+
+        <div className="relative overflow-hidden rounded-3xl border border-primary-700/50 bg-primary-950/80 shadow-[0_18px_60px_rgba(10,16,25,0.55)] backdrop-blur-xl">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(183,131,67,0.18),transparent_35%),radial-gradient(circle_at_bottom_left,rgba(76,107,138,0.22),transparent_38%)]"></div>
+
+          <div className="relative border-b border-primary-700/60 bg-gradient-to-r from-primary-700/70 to-accent-700/50 px-6 py-5">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <div className="mb-2 flex items-center gap-2">
+                  <span className="h-2.5 w-2.5 rounded-full bg-accent-300"></span>
+                  <p className="text-[11px] uppercase tracking-[0.2em] text-primary-100">
+                    AI Assistant Online
+                  </p>
+                </div>
+                <h1 className="text-2xl font-semibold text-primary-50">CardXpert Pro</h1>
+                <p className="mt-1 text-sm text-primary-100">
+                  General conversations plus expert finance and credit-card help on demand
+                </p>
+              </div>
+
+              <button
+                onClick={clearChat}
+                className="rounded-xl border border-primary-300/30 bg-primary-900/40 px-4 py-2 text-sm font-medium text-accent-100 transition hover:bg-primary-900/80"
+              >
+                New Chat
+              </button>
             </div>
-            <button
-              onClick={clearChat}
-              className="bg-primary-700 bg-opacity-20 hover:bg-primary-900 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300"
-            >
-              New Chat
-            </button>
+
+            <div className="mt-4 flex flex-wrap gap-2">
+              <span className="rounded-full border border-primary-300/30 bg-primary-900/40 px-3 py-1 text-xs text-primary-100">
+                General AI
+              </span>
+              <span className="rounded-full border border-accent-300/30 bg-accent-700/30 px-3 py-1 text-xs text-accent-100">
+                Finance Expert
+              </span>
+              <span className="rounded-full border border-primary-300/30 bg-primary-900/40 px-3 py-1 text-xs text-primary-100">
+                Credit Card Advisor
+              </span>
+            </div>
           </div>
-        </div>
 
-        <UserProfile userProfile={userProfile} onClear={clearChat} />
+          <UserProfile userProfile={userProfile} onClear={clearChat} />
 
-        <div className="h-96 overflow-y-auto p-6 bg-primary-900">
-          {messages.map((message, index) => (
-            <MessageBubble key={index} message={message} />
-          ))}
+          <div className="relative border-b border-primary-700/40 bg-primary-900/55 px-6 py-3">
+            <p className="mb-2 text-xs uppercase tracking-[0.18em] text-primary-300">
+              Quick Start
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {QUICK_PROMPTS.map((prompt) => (
+                <button
+                  key={prompt}
+                  onClick={() => sendMessage(prompt)}
+                  disabled={isLoading}
+                  className="rounded-full border border-primary-600/60 bg-primary-800/70 px-3 py-1.5 text-xs text-primary-100 transition hover:border-accent-500/70 hover:bg-primary-800 disabled:opacity-50"
+                >
+                  {prompt}
+                </button>
+              ))}
+            </div>
+          </div>
 
-          {isLoading && (
-            <div className="flex justify-start mb-4">
-              <div className="bg-primary-100 rounded-lg p-4 max-w-xs">
-                <div className="flex space-x-1">
-                  <div className="w-2 h-2 bg-primary-400 rounded-full animate-bounce"></div>
-                  <div
-                    className="w-2 h-2 bg-primary-400 rounded-full animate-bounce"
-                    style={{ animationDelay: "0.1s" }}
-                  ></div>
-                  <div
-                    className="w-2 h-2 bg-primary-400 rounded-full animate-bounce"
-                    style={{ animationDelay: "0.2s" }}
-                  ></div>
+          <div className="relative h-[58vh] min-h-[420px] overflow-y-auto bg-primary-900/70 px-5 py-6 sm:px-6">
+            {messages.map((message, index) => (
+              <MessageBubble key={index} message={message} />
+            ))}
+
+            {isLoading && (
+              <div className="mb-5 flex items-end gap-3">
+                <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary-500 to-accent-500 p-[1px]">
+                  <div className="grid h-full w-full place-items-center rounded-full bg-primary-900 text-xs font-semibold text-accent-100">
+                    AI
+                  </div>
+                </div>
+                <div className="rounded-2xl rounded-bl-md border border-primary-600/50 bg-primary-800/95 px-4 py-3 shadow-md">
+                  <div className="flex items-center gap-1.5">
+                    <div className="h-2 w-2 animate-bounce rounded-full bg-accent-200"></div>
+                    <div
+                      className="h-2 w-2 animate-bounce rounded-full bg-accent-300"
+                      style={{ animationDelay: "0.12s" }}
+                    ></div>
+                    <div
+                      className="h-2 w-2 animate-bounce rounded-full bg-accent-400"
+                      style={{ animationDelay: "0.24s" }}
+                    ></div>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          <div ref={messagesEndRef} />
+            <div ref={messagesEndRef} />
+          </div>
+
+          <Recommendations userProfile={userProfile} show={showRecommendations} />
         </div>
-
-        <Recommendations userProfile={userProfile} show={showRecommendations} />
       </div>
 
       <UserInput onSendMessage={sendMessage} disabled={isLoading} />

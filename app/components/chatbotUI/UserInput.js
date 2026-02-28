@@ -1,4 +1,3 @@
-// app/components/chatbot/UserInput.js
 "use client";
 import { useState, useRef } from "react";
 
@@ -29,26 +28,33 @@ export default function UserInput({ onSendMessage, disabled }) {
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-primary-950 shadow-lg">
-      <div className="max-w-4xl mx-auto p-4">
-        <form onSubmit={handleSubmit} className="flex space-x-3">
+    <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-primary-700/60 bg-primary-950/90 backdrop-blur-xl">
+      <div className="mx-auto w-full max-w-5xl px-4 pb-4 pt-3 sm:px-6">
+        <form
+          onSubmit={handleSubmit}
+          className="relative rounded-2xl border border-primary-600/60 bg-primary-900/95 p-2 shadow-[0_14px_40px_rgba(12,18,28,0.45)]"
+        >
           <input
             ref={inputRef}
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Type your message..."
+            placeholder="Message CardXpert Pro..."
             disabled={disabled}
-            className="flex-1 border text-accent-100 border-primary-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-primary-800 disabled:bg-primary-950  shadow-sm"
+            className="w-full rounded-xl border border-primary-700/70 bg-primary-950/80 px-4 py-3 pr-28 text-accent-100 placeholder:text-primary-400 focus:outline-none focus:ring-2 focus:ring-accent-500/60 disabled:cursor-not-allowed disabled:opacity-70"
           />
           <button
             type="submit"
             disabled={disabled || !input.trim()}
-            className="bg-gradient-to-r from-primary-600 to-accent-600 text-accent-50 px-6 py-3 rounded-lg hover:from-primary-700 hover:to-accent-700 disabled:bg-primary-800 transition-all duration-300 font-medium shadow-sm"
+            className="absolute right-4 top-1/2 -translate-y-1/2 rounded-lg bg-gradient-to-r from-primary-600 to-accent-600 px-5 py-2.5 text-sm font-semibold text-accent-50 shadow-md transition-all duration-300 hover:from-primary-700 hover:to-accent-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {disabled ? "..." : "Send"}
+            {disabled ? "Thinking..." : "Send"}
           </button>
+
+          <p className="mt-2 px-1 text-[11px] text-primary-300">
+            Enter to send. Ask anything, and request credit-card advice when needed.
+          </p>
         </form>
       </div>
     </div>

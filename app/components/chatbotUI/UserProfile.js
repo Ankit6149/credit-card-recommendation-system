@@ -2,22 +2,22 @@ export default function UserProfile({ userProfile, onClear }) {
   if (Object.keys(userProfile).length === 0) return null;
 
   return (
-    <div className="bg-gradient-to-r from-primary-200 to-accent-200 border-b border-gray-200 p-4">
-      <div className="flex justify-between items-start">
-        <div>
-          <h3 className="text-sm font-semibold text-gray-800 mb-3">
-            Your Profile:
-          </h3>
-          <div className="flex flex-wrap gap-2">
+    <div className="border-y border-primary-700/40 bg-primary-900/60 px-5 py-4 backdrop-blur-md">
+      <div className="flex items-start justify-between gap-4">
+        <section>
+          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-primary-300">
+            Active Card Profile
+          </p>
+          <div className="flex flex-wrap gap-2.5">
             {userProfile.income && (
-              <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-medium">
-                Income: {userProfile.income}
+              <span className="rounded-full border border-accent-500/40 bg-accent-500/15 px-3 py-1 text-xs font-medium text-accent-200">
+                Income {userProfile.income}
               </span>
             )}
             {userProfile.spending?.map((item) => (
               <span
                 key={item}
-                className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-medium"
+                className="rounded-full border border-primary-400/40 bg-primary-600/25 px-3 py-1 text-xs font-medium capitalize text-primary-100"
               >
                 {item}
               </span>
@@ -25,23 +25,23 @@ export default function UserProfile({ userProfile, onClear }) {
             {userProfile.benefits?.map((item) => (
               <span
                 key={item}
-                className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-xs font-medium"
+                className="rounded-full border border-accent-400/40 bg-accent-600/20 px-3 py-1 text-xs font-medium text-accent-100"
               >
                 {item}
               </span>
             ))}
             {userProfile.feePreference && (
-              <span className="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-xs font-medium">
-                Fee: {userProfile.feePreference}
+              <span className="rounded-full border border-primary-500/50 bg-primary-700/40 px-3 py-1 text-xs font-medium capitalize text-primary-100">
+                Fee {userProfile.feePreference}
               </span>
             )}
           </div>
-        </div>
+        </section>
         <button
           onClick={onClear}
-          className="text-gray-500 hover:text-gray-700 text-sm underline"
+          className="rounded-md border border-primary-600/60 px-3 py-1 text-xs font-medium text-primary-200 transition hover:border-accent-500/50 hover:text-accent-100"
         >
-          Clear
+          Reset Chat
         </button>
       </div>
     </div>

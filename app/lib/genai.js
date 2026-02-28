@@ -2,7 +2,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import fs from "node:fs/promises";
 import path from "node:path";
 
-const MODEL_NAME = process.env.GEMINI_MODEL || "gemini-1.5-flash";
+const MODEL_NAME = process.env.GEMINI_MODEL || "gemini-flash-latest";
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 const CARD_INTENT_REGEX =
   /\b(credit card|card recommendation|card advise|best card|cashback|reward points|lounge|annual fee|joining fee|emi card|fuel card|travel card|finance card)\b/i;
