@@ -24,7 +24,7 @@ export default function CreditCardFlashcard({ card }) {
 
         <div className="relative h-14 overflow-hidden rounded-xl border border-primary-600/40 bg-primary-900/70">
           <Image
-            src={card.image || "/cardxpert-card.svg"}
+            src="/cardxpert-card.svg"
             alt={`${card.name} logo`}
             fill
             className="object-contain p-3 opacity-95"
@@ -78,4 +78,5 @@ export default function CreditCardFlashcard({ card }) {
     </article>
   );
 }
+
 
