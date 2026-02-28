@@ -1,9 +1,41 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+
+import { useEffect, useRef, useState } from "react";
 import MessageBubble from "./MessageBubble";
 import UserInput from "./UserInput";
 import UserProfile from "./UserProfile";
 import Recommendations from "./Recommendations";
+
+const STARTER_MESSAGE = {
+  role: "assistant",
+  content:
+    "Hi, I am CardXpert Pro. We can chat about any topic. Ask for credit-card help whenever you want, and I will switch to card guidance.",
+  timestamp: new Date().toISOString(),
+};
+
+function normalizeList(values = []) {
+  return [...new Set(values.filter(Boolean))];
+}
+
+function mergeProfiles(baseProfile = {}, updates = {}) {
+  const base = baseProfile || {};
+  const patch = updates || {};
+  const merged = {
+    ...base,
+    ...patch,
+  };
+
+  const spending = normalizeList([...(base.spending || []), ...(patch.spending || [])]);
+  const benefits = normalizeList([...(base.benefits || []), ...(patch.benefits || [])]);
+
+  if (spending.length) merged.spending = spending;
+  else delete merged.spending;
+
+  if (benefits.length) merged.benefits = benefits;
+  else delete merged.benefits;
+
+  return merged;
+}
 
 export default function ChatInterface() {
   const [messages, setMessages] = useState([]);
@@ -12,183 +44,55 @@ export default function ChatInterface() {
   const [showRecommendations, setShowRecommendations] = useState(false);
   const messagesEndRef = useRef(null);
 
-  // Load from localStorage on mount
   useEffect(() => {
     const savedMessages = localStorage.getItem("chatMessages");
     const savedProfile = localStorage.getItem("userProfile");
+    const savedRecommendationState = localStorage.getItem("showRecommendations");
 
     if (savedMessages) {
       setMessages(JSON.parse(savedMessages));
     } else {
-      const greeting = {
-        role: "assistant",
-        content:
-          "Hi! I'm CardXpert — your personal chat assistant. You can ask me about credit cards, finance or just have a casual conversation. How can I help you today?",
-        timestamp: new Date().toISOString(),
-      };
-      setMessages([greeting]);
+      setMessages([STARTER_MESSAGE]);
     }
 
     if (savedProfile) {
-      const profile = JSON.parse(savedProfile);
-      setUserProfile(profile);
-      if (isProfileComplete(profile)) {
-        setShowRecommendations(true);
-      }
+      setUserProfile(JSON.parse(savedProfile));
+    }
+
+    if (savedRecommendationState) {
+      setShowRecommendations(savedRecommendationState === "true");
     }
   }, []);
 
-  // Save to localStorage when messages change
   useEffect(() => {
     if (messages.length > 0) {
       localStorage.setItem("chatMessages", JSON.stringify(messages));
     }
   }, [messages]);
 
-  // Auto-scroll to bottom
+  useEffect(() => {
+    localStorage.setItem("userProfile", JSON.stringify(userProfile));
+  }, [userProfile]);
+
+  useEffect(() => {
+    localStorage.setItem("showRecommendations", String(showRecommendations));
+  }, [showRecommendations]);
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
-
-  const isProfileComplete = (profile) => {
-    return profile.income && profile.spending && profile.benefits;
-  };
-
-  // Enhanced income detection function
-  function detectIncomeRange(salaryInput) {
-    const cleaned = salaryInput
-      .replace(/,/g, "")
-      .replace(/\s/g, "")
-      .toLowerCase();
-
-    let salary = 0;
-
-    // Check for 'k' notation (50k, 75k, etc.)
-    const kMatch = cleaned.match(/(\d+)k/);
-    if (kMatch) {
-      salary = parseInt(kMatch[1]) * 1000;
-    }
-
-    // Check for 'lakh' notation (1.5 lakh, 2 lakh, etc.)
-    const lakhMatch = cleaned.match(/(\d+(?:\.\d+)?)(?:\s*lakh|l)/);
-    if (lakhMatch) {
-      salary = parseFloat(lakhMatch[1]) * 100000;
-    }
-
-    // Check for direct numeric input (50000, 75000, etc.)
-    const numericMatch = cleaned.match(/(\d{4,})/);
-    if (numericMatch && !kMatch && !lakhMatch) {
-      salary = parseInt(numericMatch[1]);
-    }
-
-    // Map salary to predefined ranges
-    if (salary > 0) {
-      if (salary < 20000) {
-        return "<20k";
-      } else if (salary >= 20000 && salary < 50000) {
-        return "20k-50k";
-      } else if (salary >= 50000 && salary < 100000) {
-        return "50k-1L";
-      } else if (salary >= 100000) {
-        return "1L+";
-      }
-    }
-
-    return null;
-  }
-
-  const extractUserData = (message) => {
-    const text = message.toLowerCase();
-    const newProfile = { ...userProfile };
-
-    // Auto-detect income range
-    const detectedRange = detectIncomeRange(text);
-    if (detectedRange) {
-      newProfile.income = detectedRange;
-    }
-
-    // Extract spending habits
-    if (text.includes("fuel") || text.includes("petrol")) {
-      newProfile.spending = newProfile.spending || [];
-      if (!newProfile.spending.includes("fuel")) {
-        newProfile.spending.push("fuel");
-      }
-    }
-    if (text.includes("travel")) {
-      newProfile.spending = newProfile.spending || [];
-      if (!newProfile.spending.includes("travel")) {
-        newProfile.spending.push("travel");
-      }
-    }
-    if (text.includes("dining") || text.includes("food")) {
-      newProfile.spending = newProfile.spending || [];
-      if (!newProfile.spending.includes("dining")) {
-        newProfile.spending.push("dining");
-      }
-    }
-    if (text.includes("shopping") || text.includes("online")) {
-      newProfile.spending = newProfile.spending || [];
-      if (!newProfile.spending.includes("shopping")) {
-        newProfile.spending.push("shopping");
-      }
-    }
-    if (text.includes("groceries") || text.includes("grocery")) {
-      newProfile.spending = newProfile.spending || [];
-      if (!newProfile.spending.includes("groceries")) {
-        newProfile.spending.push("groceries");
-      }
-    }
-
-    // Extract benefits
-    if (text.includes("cashback")) {
-      newProfile.benefits = newProfile.benefits || [];
-      if (!newProfile.benefits.includes("cashback")) {
-        newProfile.benefits.push("cashback");
-      }
-    }
-    if (text.includes("lounge")) {
-      newProfile.benefits = newProfile.benefits || [];
-      if (!newProfile.benefits.includes("lounge")) {
-        newProfile.benefits.push("lounge");
-      }
-    }
-    if (text.includes("travel points") || text.includes("miles")) {
-      newProfile.benefits = newProfile.benefits || [];
-      if (!newProfile.benefits.includes("travel points")) {
-        newProfile.benefits.push("travel points");
-      }
-    }
-
-    // Extract fee preference
-    if (text.includes("free") || text.includes("no fee")) {
-      newProfile.feePreference = "free";
-    } else if (text.includes("low") || text.includes("under 1000")) {
-      newProfile.feePreference = "low";
-    } else if (text.includes("medium") || text.includes("1000-5000")) {
-      newProfile.feePreference = "medium";
-    }
-
-    setUserProfile(newProfile);
-    localStorage.setItem("userProfile", JSON.stringify(newProfile));
-
-    return newProfile;
-  };
 
   const sendMessage = async (message) => {
     if (!message.trim() || isLoading) return;
 
     const userMessage = {
       role: "user",
-      content: message,
+      content: message.trim(),
       timestamp: new Date().toISOString(),
     };
+    const outgoingMessages = [...messages, userMessage];
 
-    const newMessages = [...messages, userMessage];
-    setMessages(newMessages);
-
-    // Extract user data
-    const updatedProfile = extractUserData(message);
-
+    setMessages(outgoingMessages);
     setIsLoading(true);
 
     try {
@@ -196,57 +100,49 @@ export default function ChatInterface() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          messages: newMessages.map((msg) => ({
-            role: msg.role,
-            content: msg.content,
+          messages: outgoingMessages.map((item) => ({
+            role: item.role,
+            content: item.content,
           })),
-          currentProfile: updatedProfile,
+          userProfile,
+          currentProfile: userProfile,
         }),
       });
 
       const data = await response.json();
-
-      if (data.error) {
-        throw new Error(data.error);
+      if (!response.ok) {
+        throw new Error(data?.error || "Chat request failed");
       }
 
-      // the backend now returns an object with a `message` string plus
-      // metadata like `mergedProfile` and `shouldShowRecommendations`.
-      const payload = data.message;
-      const replyText =
-        typeof payload === "string" ? payload : payload.message || "";
+      const merged = data?.mergedProfile
+        ? mergeProfiles(userProfile, data.mergedProfile)
+        : mergeProfiles(userProfile, data?.profileUpdates || {});
+      setUserProfile(merged);
 
-      const aiMessage = {
+      const assistantMessage = {
         role: "assistant",
-        content: replyText,
+        content:
+          typeof data?.message === "string"
+            ? data.message
+            : "I can continue the conversation. Ask me anything.",
         timestamp: new Date().toISOString(),
       };
+      setMessages((prev) => [...prev, assistantMessage]);
 
-      setMessages((prev) => [...prev, aiMessage]);
-
-      // if the model returned a merged profile, sync to local state/storage
-      if (payload && typeof payload === "object" && payload.mergedProfile) {
-        setUserProfile(payload.mergedProfile);
-        localStorage.setItem(
-          "userProfile",
-          JSON.stringify(payload.mergedProfile),
-        );
-
-        if (payload.shouldShowRecommendations) {
-          setTimeout(() => setShowRecommendations(true), 2000);
-        }
-      } else if (isProfileComplete(updatedProfile)) {
-        // fallback heuristic
-        setTimeout(() => setShowRecommendations(true), 2000);
+      if (data?.shouldShowRecommendations) {
+        setShowRecommendations(true);
       }
     } catch (error) {
-      console.error("Error:", error);
-      const errorMessage = {
-        role: "assistant",
-        content: "Sorry, I encountered an error. Please try again.",
-        timestamp: new Date().toISOString(),
-      };
-      setMessages((prev) => [...prev, errorMessage]);
+      console.error("Chat UI error:", error);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content:
+            "I had trouble responding just now. Please retry, and I will continue from where we left off.",
+          timestamp: new Date().toISOString(),
+        },
+      ]);
     } finally {
       setIsLoading(false);
     }
@@ -255,11 +151,10 @@ export default function ChatInterface() {
   const clearChat = () => {
     localStorage.removeItem("chatMessages");
     localStorage.removeItem("userProfile");
+    localStorage.removeItem("showRecommendations");
     setMessages([
       {
-        role: "assistant",
-        content:
-          "Hi! I'm CardXpert — your personal chat assistant. You can ask me about credit cards, finance or just have a casual conversation. How can I help you today?",
+        ...STARTER_MESSAGE,
         timestamp: new Date().toISOString(),
       },
     ]);
@@ -269,15 +164,13 @@ export default function ChatInterface() {
 
   return (
     <>
-      {/* Main Chat Container */}
       <div className="max-w-4xl mx-auto bg-primary-950 rounded-lg shadow-lg overflow-hidden mb-20">
-        {/* Header */}
         <div className="bg-gradient-to-r from-primary-600 to-accent-600 text-primary-50 p-6">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-2xl font-bold">CardXpert AI</h1>
+              <h1 className="text-2xl font-bold">CardXpert Pro</h1>
               <p className="text-primary-100">
-                Your Personal Credit Card Advisor
+                General AI chat with on-demand credit-card expertise
               </p>
             </div>
             <button
@@ -289,10 +182,8 @@ export default function ChatInterface() {
           </div>
         </div>
 
-        {/* User Profile */}
         <UserProfile userProfile={userProfile} onClear={clearChat} />
 
-        {/* Messages */}
         <div className="h-96 overflow-y-auto p-6 bg-primary-900">
           {messages.map((message, index) => (
             <MessageBubble key={index} message={message} />
@@ -319,11 +210,9 @@ export default function ChatInterface() {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Recommendations */}
         <Recommendations userProfile={userProfile} show={showRecommendations} />
       </div>
 
-      {/* Floating Input - Separate from main container */}
       <UserInput onSendMessage={sendMessage} disabled={isLoading} />
     </>
   );

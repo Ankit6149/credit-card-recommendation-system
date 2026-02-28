@@ -4,15 +4,10 @@ import path from "node:path";
 
 const MODEL_NAME = process.env.GEMINI_MODEL || "gemini-1.5-flash";
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
-
-// When the model output cannot be parsed we fall back to this very
-// generic reply so the UI still has something meaningful to show.
+const CARD_INTENT_REGEX =
+  /\b(credit card|card recommendation|card advise|best card|cashback|reward points|lounge|annual fee|joining fee|emi card|fuel card|travel card|finance card)\b/i;
 const FALLBACK_REPLY =
-  "I'm here to chat about anything or help with credit cards. Ask me anything, and when you're ready for recommendations just share a bit about your income and spending habits.";
-
-// Allowed intents returned by the AI. `general_chat` covers small talk,
-// off-topic responses, and anything that doesn't fit the other finance-
-// oriented categories.
+  "I can chat on any topic. If you want credit-card recommendations, ask me and I will switch to card guidance.";
 const ALLOWED_INTENTS = new Set([
   "general_chat",
   "finance_education",
@@ -44,21 +39,15 @@ const FEE_ALIASES = {
   high: ["high fee", "premium fee", "above 5000", "over 5000"],
 };
 
-const DOMAIN_SYSTEM_PROMPT = `You are CardXpert Pro, a production-grade AI assistant deployed in a customer-facing
-application.
+const DOMAIN_SYSTEM_PROMPT = `You are CardXpert Pro, a production-grade AI assistant.
 
-General behavior:
-- Speak in a friendly, professional tone. You can chat naturally on any topic (movies, weather,
-  coding, motivation, etc.) and use conversational language when appropriate.
-- Maintain deep expertise in personal finance and credit cards (especially Indian cards).
-- Never hallucinate or invent details about cards; if you are unsure consult the card catalog or
-  respond that you are unsure and ask a clarifying question.
-- Answer off-topic questions fully and helpfully. After addressing an unrelated topic, gently
-  offer to return to credit-card/finance advice by saying something like "Let me know if you'd
-  like help finding a card" or "Would you like to discuss cards again?".
-- Do not ask more than one follow‑up question per turn. Keep replies concise but complete.
-- If the user explicitly wants recommendations or shares profile data, update the profile
-  schema accordingly and set intent to profile_collection/card_recommendation.
+Behavior:
+- You can chat naturally on any topic and should stay on the user's current topic.
+- Do not switch to credit-card recommendations unless card_mode=true.
+- If card_mode=false, do not ask for income, spending, fee preference, or card profile details.
+- If card_mode=true, provide strong finance and credit-card guidance using only the card catalog.
+- Never invent card facts that are missing from the card catalog.
+- Ask at most one follow-up question in a turn.
 
 Profile schema:
 - income: one of <20k, 20k-50k, 50k-1L, 1L+
@@ -69,10 +58,9 @@ Profile schema:
 Output contract:
 - Return ONLY valid JSON and no markdown.
 - JSON keys: reply, intent, profile_updates, should_show_recommendations
-- intent must be one of general_chat, finance_education, card_recommendation,
-  profile_collection
-- profile_updates must always be an object with optional keys from the profile schema.
-- should_show_recommendations should be true only if enough profile data exists.`;
+- intent must be one of general_chat, finance_education, card_recommendation, profile_collection
+- profile_updates must be an object.
+- if card_mode=false, profile_updates must be {} and should_show_recommendations must be false.`;
 
 let cardsCache = null;
 
@@ -164,12 +152,15 @@ export function extractProfileFromText(input = "") {
   return profile;
 }
 
+export function isCardIntentText(input = "") {
+  return CARD_INTENT_REGEX.test(String(input));
+}
+
 function normalizeProfileShape(profile = {}) {
   const normalized = {};
 
-  if (typeof profile.income === "string") {
-    const income = profile.income.trim();
-    if (income) normalized.income = income;
+  if (typeof profile.income === "string" && profile.income.trim()) {
+    normalized.income = profile.income.trim();
   }
 
   if (Array.isArray(profile.spending)) {
@@ -184,9 +175,11 @@ function normalizeProfileShape(profile = {}) {
     );
   }
 
-  if (typeof profile.feePreference === "string") {
-    const fee = normalizeText(profile.feePreference).trim();
-    if (fee) normalized.feePreference = fee;
+  if (
+    typeof profile.feePreference === "string" &&
+    normalizeText(profile.feePreference).trim()
+  ) {
+    normalized.feePreference = normalizeText(profile.feePreference).trim();
   }
 
   return normalized;
@@ -195,29 +188,31 @@ function normalizeProfileShape(profile = {}) {
 export function mergeProfiles(baseProfile = {}, updates = {}) {
   const base = normalizeProfileShape(baseProfile);
   const patch = normalizeProfileShape(updates);
-
-  return {
+  const merged = {
     ...base,
     ...patch,
-    spending: normalizeList([
-      ...(base.spending || []),
-      ...(patch.spending || []),
-    ]),
-    benefits: normalizeList([
-      ...(base.benefits || []),
-      ...(patch.benefits || []),
-    ]),
   };
+
+  const spending = normalizeList([...(base.spending || []), ...(patch.spending || [])]);
+  const benefits = normalizeList([...(base.benefits || []), ...(patch.benefits || [])]);
+
+  if (spending.length) merged.spending = spending;
+  else delete merged.spending;
+
+  if (benefits.length) merged.benefits = benefits;
+  else delete merged.benefits;
+
+  return merged;
 }
 
 export function isProfileComplete(profile = {}) {
   return Boolean(
     profile.income &&
-    Array.isArray(profile.spending) &&
-    profile.spending.length > 0 &&
-    Array.isArray(profile.benefits) &&
-    profile.benefits.length > 0 &&
-    profile.feePreference,
+      Array.isArray(profile.spending) &&
+      profile.spending.length > 0 &&
+      Array.isArray(profile.benefits) &&
+      profile.benefits.length > 0 &&
+      profile.feePreference,
   );
 }
 
@@ -243,13 +238,8 @@ async function loadCardsCatalog() {
 }
 
 function buildCardsKnowledge(cards = []) {
-  if (!cards.length) {
-    return "No card catalog is available.";
-  }
+  if (!cards.length) return "No card catalog available.";
 
-  // include the entire catalogue so the assistant has access to all cards; the
-  // model can handle several dozen lines of context and will only look at what
-  // it needs.
   return cards
     .map((card) => {
       const perks = Array.isArray(card.perks) ? card.perks.join(", ") : "";
@@ -287,9 +277,8 @@ function parseJsonFromModel(text = "") {
     const firstBrace = cleaned.indexOf("{");
     const lastBrace = cleaned.lastIndexOf("}");
     if (firstBrace >= 0 && lastBrace > firstBrace) {
-      const candidate = cleaned.slice(firstBrace, lastBrace + 1);
       try {
-        return JSON.parse(candidate);
+        return JSON.parse(cleaned.slice(firstBrace, lastBrace + 1));
       } catch {
         return null;
       }
@@ -300,14 +289,14 @@ function parseJsonFromModel(text = "") {
 
 function normalizeIntent(intent = "") {
   if (ALLOWED_INTENTS.has(intent)) return intent;
-  return "profile_collection";
+  return "general_chat";
 }
 
-function normalizeModelPayload(payload) {
+function normalizeModelPayload(payload = {}) {
   if (!payload || typeof payload !== "object") {
     return {
       reply: FALLBACK_REPLY,
-      intent: "profile_collection",
+      intent: "general_chat",
       profile_updates: {},
       should_show_recommendations: false,
     };
@@ -332,8 +321,14 @@ function buildPrompt({
   currentProfile,
   heuristicProfile,
   cardsKnowledge,
+  cardMode,
 }) {
   return `${DOMAIN_SYSTEM_PROMPT}
+
+Conversation mode:
+- card_mode=${cardMode}
+- If card_mode=false, stay in general chat and do not ask profile questions.
+- If card_mode=true, use the profile schema and card catalog to guide card decisions.
 
 Current profile:
 ${JSON.stringify(currentProfile)}
@@ -362,61 +357,48 @@ export async function createChatCompletion({
   const cards = await loadCardsCatalog();
 
   const latestUserMessage =
-    [...messages].reverse().find((message) => message.role === "user")
-      ?.content || "";
-  const heuristicProfile = extractProfileFromText(latestUserMessage);
+    [...messages].reverse().find((message) => message.role === "user")?.content ||
+    "";
+  const recentUserText = messages
+    .filter((message) => message.role === "user")
+    .slice(-3)
+    .map((message) => message.content || "")
+    .join(" ");
+  const cardMode = isCardIntentText(recentUserText);
+
   const normalizedCurrentProfile = normalizeProfileShape(currentProfile);
+  const heuristicProfile = cardMode ? extractProfileFromText(latestUserMessage) : {};
 
   const prompt = buildPrompt({
     messages,
     currentProfile: normalizedCurrentProfile,
     heuristicProfile,
     cardsKnowledge: buildCardsKnowledge(cards),
+    cardMode,
   });
 
-  // send the prompt and parse the model response. if parsing fails we retry once
-  // with an explicit reminder about the output contract so the UI still gets
-  // something meaningful instead of the generic fallback.
-  let modelPayload;
-  {
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const rawText = response.text();
+  const result = await model.generateContent(prompt);
+  const response = await result.response;
+  const rawText = response.text();
+  const modelPayload = normalizeModelPayload(parseJsonFromModel(rawText));
 
-    modelPayload = normalizeModelPayload(parseJsonFromModel(rawText));
-
-    if (
-      modelPayload.reply === FALLBACK_REPLY ||
-      (modelPayload.intent === "profile_collection" &&
-        !Object.keys(modelPayload.profile_updates).length)
-    ) {
-      // Try one more time if we clearly fell back due to parse issues
-      const retryPrompt =
-        prompt +
-        "\n\n# REMINDER: output a single JSON object matching the contract exactly. " +
-        "Do not include any commentary or markdown.";
-      const retryResult = await model.generateContent(retryPrompt);
-      const retryResp = await retryResult.response;
-      const retryText = retryResp.text();
-      const retryPayload = normalizeModelPayload(parseJsonFromModel(retryText));
-      if (retryPayload.reply !== FALLBACK_REPLY) {
-        modelPayload = retryPayload;
-      }
-    }
-  }
-
-  const mergedUpdates = mergeProfiles(
-    heuristicProfile,
-    modelPayload.profile_updates,
-  );
-  const mergedProfile = mergeProfiles(normalizedCurrentProfile, mergedUpdates);
+  const mergedUpdates = cardMode
+    ? mergeProfiles(heuristicProfile, modelPayload.profile_updates)
+    : {};
+  const mergedProfile = cardMode
+    ? mergeProfiles(normalizedCurrentProfile, mergedUpdates)
+    : normalizedCurrentProfile;
   const shouldShowRecommendations =
-    modelPayload.should_show_recommendations ||
-    isProfileComplete(mergedProfile);
+    cardMode &&
+    (modelPayload.should_show_recommendations || isProfileComplete(mergedProfile));
 
   return {
     message: modelPayload.reply,
-    intent: modelPayload.intent,
+    intent: cardMode
+      ? modelPayload.intent
+      : modelPayload.intent === "finance_education"
+        ? "finance_education"
+        : "general_chat",
     profileUpdates: mergedUpdates,
     mergedProfile,
     shouldShowRecommendations,

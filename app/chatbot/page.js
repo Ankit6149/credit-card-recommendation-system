@@ -2,9 +2,9 @@ import ChatInterface from "../components/chatbotUI/ChatInterface";
 import Link from "next/link";
 
 export const metadata = {
-  title: "CardXpert AI - Credit Card Advisor",
+  title: "CardXpert Pro - General Chat and Card Advisor",
   description:
-    "Get personalized credit card recommendations with our AI-powered advisor",
+    "Chat on any topic and get personalized credit card recommendations on demand",
 };
 
 function page() {
@@ -24,12 +24,12 @@ function page() {
         {/* Page Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-primary-200 mb-4">
-            AI Credit Card Advisor
+            CardXpert Pro Assistant
           </h1>
           <p className="text-lg text-accent-300 max-w-2xl mx-auto">
-            Chat with our AI advisor to get personalized credit card
-            recommendations based on your income, spending habits, and
-            preferences.
+            Have a normal conversation on any topic. Ask for credit-card help
+            whenever you want, and the assistant will switch to finance
+            guidance with personalized recommendations.
           </p>
         </div>
 
