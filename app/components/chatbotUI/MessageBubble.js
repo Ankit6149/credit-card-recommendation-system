@@ -8,24 +8,34 @@ export default function MessageBubble({ message }) {
     : "";
 
   return (
-    <article className={`border-b border-primary-800/60 ${isUser ? "bg-primary-900/35" : "bg-primary-900/65"}`}>
-      <div className="mx-auto flex w-full max-w-4xl items-start gap-3 px-4 py-5 sm:px-6">
+    <article
+      className={`border-b border-primary-800/60 ${
+        isUser ? "bg-primary-900/35" : "bg-primary-900/65"
+      }`}
+    >
+      <div className={`mx-auto flex w-full max-w-4xl items-start gap-3 px-4 py-5 sm:px-6 ${isUser ? "justify-end" : "justify-start"}`}>
+        {!isUser && (
+          <div className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-gradient-to-br from-primary-500 to-accent-500 text-[11px] font-semibold text-accent-50">
+            AI
+          </div>
+        )}
+
         <div
-          className={`mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg text-[11px] font-semibold ${
-            isUser
-              ? "bg-primary-700 text-primary-100"
-              : "bg-gradient-to-br from-primary-500 to-accent-500 text-accent-50"
+          className={`min-w-0 ${
+            isUser ? "max-w-[80%] text-right" : "max-w-[86%] text-left"
           }`}
         >
-          {isUser ? "You" : "AI"}
-        </div>
-
-        <div className="min-w-0 flex-1">
           <p className="whitespace-pre-wrap text-[15px] leading-7 text-primary-50">
             {message.content}
           </p>
           <p className="mt-2 text-[11px] tracking-wide text-primary-300">{time}</p>
         </div>
+
+        {isUser && (
+          <div className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-primary-700 text-[11px] font-semibold text-primary-100">
+            You
+          </div>
+        )}
       </div>
     </article>
   );
