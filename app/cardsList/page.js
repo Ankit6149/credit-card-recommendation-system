@@ -82,9 +82,7 @@ export default function CardsListPage() {
         });
 
         const response = await fetch(`/api/cards?${query}`, { cache: "no-store" });
-        if (!response.ok) {
-          throw new Error("Unable to fetch cards");
-        }
+        if (!response.ok) throw new Error("Unable to fetch cards");
 
         const payload = await response.json();
         if (!active) return;
@@ -134,7 +132,6 @@ export default function CardsListPage() {
             href="/"
             className="inline-flex items-center gap-2 rounded-full border border-primary-600/60 bg-primary-800/60 px-4 py-2 text-sm font-medium text-primary-100 transition hover:border-accent-500/60 hover:text-accent-100"
           >
-            <span aria-hidden>←</span>
             <span>Back to Home</span>
           </Link>
           <SourceBadge source={source} />
@@ -263,31 +260,31 @@ export default function CardsListPage() {
                 href={`/cardsList/${card.slug || createSlug(card.name)}`}
                 className="block rounded-2xl border border-primary-700/50 bg-primary-900/80 px-4 py-4 transition hover:border-accent-500/45 hover:bg-primary-900"
               >
-                <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                  <div>
-                    <h3 className="text-lg font-semibold text-primary-50">{card.name}</h3>
-                    <p className="text-sm text-primary-300">{card.issuer}</p>
+                <div className="grid gap-4 lg:grid-cols-[minmax(220px,1.45fr)_minmax(120px,0.8fr)_minmax(150px,0.9fr)_minmax(170px,1fr)_auto] lg:items-center">
+                  <div className="min-w-0">
+                    <h3 className="truncate text-lg font-semibold text-primary-50">{card.name}</h3>
+                    <p className="truncate text-sm text-primary-300">{card.issuer}</p>
                   </div>
-                  <div className="grid grid-cols-2 gap-4 text-sm lg:grid-cols-4">
-                    <div>
-                      <p className="text-primary-300">Annual Fee</p>
-                      <p className="font-semibold text-accent-100">
-                        Rs {Number(card.annual_fee || 0).toLocaleString()}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-primary-300">Reward Type</p>
-                      <p className="font-semibold text-accent-100">{card.reward_type}</p>
-                    </div>
-                    <div>
-                      <p className="text-primary-300">Reward Rate</p>
-                      <p className="font-semibold text-accent-100">{card.reward_rate}</p>
-                    </div>
-                    <div className="self-end text-left lg:text-right">
-                      <span className="text-sm font-semibold text-accent-200">
-                        View details →
-                      </span>
-                    </div>
+
+                  <div className="text-sm">
+                    <p className="text-[11px] uppercase tracking-wide text-primary-300">Annual Fee</p>
+                    <p className="font-semibold text-accent-100">
+                      Rs {Number(card.annual_fee || 0).toLocaleString()}
+                    </p>
+                  </div>
+
+                  <div className="text-sm">
+                    <p className="text-[11px] uppercase tracking-wide text-primary-300">Reward Type</p>
+                    <p className="font-semibold text-accent-100">{card.reward_type}</p>
+                  </div>
+
+                  <div className="min-w-0 text-sm">
+                    <p className="text-[11px] uppercase tracking-wide text-primary-300">Reward Rate</p>
+                    <p className="truncate font-semibold text-accent-100">{card.reward_rate}</p>
+                  </div>
+
+                  <div className="text-left lg:text-right">
+                    <span className="text-sm font-semibold text-accent-200">View details -&gt;</span>
                   </div>
                 </div>
               </Link>
@@ -311,9 +308,7 @@ export default function CardsListPage() {
 
             <button
               onClick={() =>
-                setPage((current) =>
-                  Math.min(pagination.totalPages, current + 1),
-                )
+                setPage((current) => Math.min(pagination.totalPages, current + 1))
               }
               disabled={pagination.page >= pagination.totalPages}
               className="rounded-lg border border-primary-700/60 bg-primary-900/70 px-3 py-2 text-sm text-primary-100 transition hover:border-accent-500/60 disabled:cursor-not-allowed disabled:opacity-50"

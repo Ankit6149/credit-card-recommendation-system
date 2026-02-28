@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import MessageBubble from "./MessageBubble";
 import UserInput from "./UserInput";
 import UserProfile from "./UserProfile";
@@ -9,16 +9,39 @@ import Recommendations from "./Recommendations";
 const STARTER_MESSAGE = {
   role: "assistant",
   content:
-    "Hi, I am CardXpert Pro. Ask me anything. I stay in general chat by default and switch to card guidance when you request it.",
+    "Hi, I am CardXpert Pro. Ask me anything. Use mode buttons to switch between general chat, finance guidance, and card advisory.",
   timestamp: new Date().toISOString(),
 };
 
-const QUICK_STARTS = [
-  "What all can you tell me in finance?",
-  "How do I improve my credit score?",
-  "Recommend a low fee cashback card",
-  "Suggest cards for travel and lounge access",
+const CHAT_MODES = [
+  { id: "auto", label: "Auto" },
+  { id: "general", label: "General" },
+  { id: "finance", label: "Finance" },
+  { id: "cards", label: "Cards" },
 ];
+
+const QUICK_PROMPTS = {
+  auto: [
+    "What all can you tell me in finance?",
+    "How do I improve my credit score?",
+    "Recommend a low fee cashback card",
+  ],
+  general: [
+    "Plan my week for better productivity",
+    "Explain this topic in simple words",
+    "Give me a short daily routine idea",
+  ],
+  finance: [
+    "How should I build an emergency fund?",
+    "Explain debt snowball vs debt avalanche",
+    "How does credit utilization impact score?",
+  ],
+  cards: [
+    "Suggest cards for travel and lounge access",
+    "Recommend a no annual fee cashback card",
+    "Best cards for online shopping rewards",
+  ],
+};
 
 function normalizeList(values = []) {
   return [...new Set(values.filter(Boolean))];
@@ -44,23 +67,40 @@ function mergeProfiles(baseProfile = {}, updates = {}) {
   return merged;
 }
 
+function modeDescription(mode) {
+  if (mode === "general") return "General assistant mode";
+  if (mode === "finance") return "Finance education mode";
+  if (mode === "cards") return "Credit-card advisory mode";
+  return "Auto intent detection mode";
+}
+
 export default function ChatInterface() {
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [userProfile, setUserProfile] = useState({});
   const [showRecommendations, setShowRecommendations] = useState(false);
+  const [chatMode, setChatMode] = useState("auto");
   const endRef = useRef(null);
+
+  const quickPrompts = useMemo(
+    () => QUICK_PROMPTS[chatMode] || QUICK_PROMPTS.auto,
+    [chatMode],
+  );
 
   useEffect(() => {
     const savedMessages = localStorage.getItem("chatMessages");
     const savedProfile = localStorage.getItem("userProfile");
     const savedRecommendationState = localStorage.getItem("showRecommendations");
+    const savedChatMode = localStorage.getItem("chatMode");
 
     if (savedMessages) setMessages(JSON.parse(savedMessages));
     else setMessages([STARTER_MESSAGE]);
 
     if (savedProfile) setUserProfile(JSON.parse(savedProfile));
     if (savedRecommendationState) setShowRecommendations(savedRecommendationState === "true");
+    if (savedChatMode && CHAT_MODES.some((mode) => mode.id === savedChatMode)) {
+      setChatMode(savedChatMode);
+    }
   }, []);
 
   useEffect(() => {
@@ -76,6 +116,10 @@ export default function ChatInterface() {
   }, [showRecommendations]);
 
   useEffect(() => {
+    localStorage.setItem("chatMode", chatMode);
+  }, [chatMode]);
+
+  useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages, isLoading]);
 
@@ -87,8 +131,8 @@ export default function ChatInterface() {
       content: message.trim(),
       timestamp: new Date().toISOString(),
     };
-
     const outgoingMessages = [...messages, userMessage];
+
     setMessages(outgoingMessages);
     setIsLoading(true);
 
@@ -103,6 +147,7 @@ export default function ChatInterface() {
           })),
           userProfile,
           currentProfile: userProfile,
+          chatMode,
         }),
       });
 
@@ -153,13 +198,13 @@ export default function ChatInterface() {
   };
 
   return (
-    <div className="relative mx-auto w-full max-w-5xl">
-      <div className="rounded-3xl border border-primary-700/55 bg-primary-900/75 shadow-[0_18px_55px_rgba(9,14,22,0.45)] backdrop-blur-xl">
-        <header className="border-b border-primary-700/60 bg-gradient-to-r from-primary-800/70 to-accent-800/30 px-5 py-4">
+    <div className="mx-auto w-full max-w-5xl">
+      <div className="overflow-hidden rounded-2xl border border-primary-700/60 bg-primary-900/85 shadow-[0_16px_45px_rgba(9,14,22,0.45)]">
+        <header className="border-b border-primary-700/60 bg-primary-900/95 px-4 py-4 sm:px-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="text-xs uppercase tracking-[0.2em] text-primary-300">Conversation</p>
-              <h2 className="mt-1 text-xl font-semibold text-primary-50">CardXpert Pro</h2>
+              <h2 className="text-xl font-semibold text-primary-50">CardXpert Pro</h2>
+              <p className="text-xs text-primary-300">{modeDescription(chatMode)}</p>
             </div>
             <button
               onClick={clearChat}
@@ -168,11 +213,27 @@ export default function ChatInterface() {
               New Chat
             </button>
           </div>
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            {CHAT_MODES.map((mode) => (
+              <button
+                key={mode.id}
+                onClick={() => setChatMode(mode.id)}
+                className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                  chatMode === mode.id
+                    ? "bg-gradient-to-r from-primary-600 to-accent-600 text-primary-50"
+                    : "border border-primary-600/60 bg-primary-800/70 text-primary-200 hover:border-accent-500/60 hover:text-accent-100"
+                }`}
+              >
+                {mode.label}
+              </button>
+            ))}
+          </div>
         </header>
 
-        <div className="border-b border-primary-700/50 px-5 py-3">
+        <div className="border-b border-primary-700/50 bg-primary-900/60 px-4 py-3 sm:px-6">
           <div className="flex flex-wrap gap-2">
-            {QUICK_STARTS.map((prompt) => (
+            {quickPrompts.map((prompt) => (
               <button
                 key={prompt}
                 onClick={() => sendMessage(prompt)}
@@ -187,20 +248,18 @@ export default function ChatInterface() {
 
         <UserProfile userProfile={userProfile} onClear={clearChat} />
 
-        <section className="px-5 py-5">
+        <section>
           {messages.map((message, index) => (
             <MessageBubble key={index} message={message} />
           ))}
 
           {isLoading && (
-            <div className="mb-5 flex items-end gap-3">
-              <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary-500 to-accent-500 p-[1px]">
-                <div className="grid h-full w-full place-items-center rounded-full bg-primary-900 text-xs font-semibold text-accent-100">
+            <article className="border-b border-primary-800/60 bg-primary-900/65">
+              <div className="mx-auto flex w-full max-w-4xl items-start gap-3 px-4 py-5 sm:px-6">
+                <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-gradient-to-br from-primary-500 to-accent-500 text-[11px] font-semibold text-accent-50">
                   AI
                 </div>
-              </div>
-              <div className="rounded-2xl rounded-bl-md border border-primary-600/50 bg-primary-800/95 px-4 py-3 shadow-md">
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 pt-2">
                   <div className="h-2 w-2 animate-bounce rounded-full bg-accent-200"></div>
                   <div
                     className="h-2 w-2 animate-bounce rounded-full bg-accent-300"
@@ -212,13 +271,15 @@ export default function ChatInterface() {
                   ></div>
                 </div>
               </div>
-            </div>
+            </article>
           )}
 
           <div ref={endRef} />
-
-          <UserInput onSendMessage={sendMessage} disabled={isLoading} />
         </section>
+
+        <div className="px-4 sm:px-6">
+          <UserInput onSendMessage={sendMessage} disabled={isLoading} />
+        </div>
 
         <Recommendations userProfile={userProfile} show={showRecommendations} />
       </div>

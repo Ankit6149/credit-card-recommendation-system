@@ -3,9 +3,9 @@ import Link from "next/link";
 
 function Logo() {
   return (
-    <div className="pt-2">
-      <Link href="/">
-        <Image src="/logo4.png" alt="CaredXpert logo" height="80" width="138" />
+    <div className="flex items-center">
+      <Link href="/" className="inline-flex items-center">
+        <Image src="/logo4.png" alt="CaredXpert logo" height="52" width="120" />
       </Link>
     </div>
   );

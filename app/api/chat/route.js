@@ -7,6 +7,7 @@ import {
 
 const CARD_INTENT_REGEX =
   /\b(credit card|card recommendation|card advise|best card|cashback|reward points|lounge|annual fee|joining fee|emi card|fuel card|travel card|finance card)\b/i;
+const ALLOWED_CHAT_MODES = new Set(["auto", "general", "finance", "cards"]);
 
 function normalizeMessages(messages = []) {
   return messages
@@ -35,17 +36,22 @@ function missingProfileQuestion(profile = {}) {
   return "I have enough details. I can recommend the best options now.";
 }
 
-function getFallbackResponse(messages, userProfile) {
+function getFallbackResponse(messages, userProfile, chatMode = "auto") {
   const lastUserMessage =
     [...messages].reverse().find((message) => message.role === "user")?.content ||
     "";
-  const userAskedCards = CARD_INTENT_REGEX.test(lastUserMessage);
+  const userAskedCards =
+    chatMode === "cards" ||
+    (chatMode === "auto" && CARD_INTENT_REGEX.test(lastUserMessage));
 
   if (!userAskedCards) {
+    const fallbackByMode =
+      chatMode === "finance"
+        ? "I can help with finance topics like budgeting, credit score, debt payoff, investing basics, taxes, and planning. What area do you want to start with?"
+        : "I can chat on any topic. If you want credit-card help later, just ask and I will switch to card guidance.";
     return {
-      message:
-        "I can chat on any topic. If you want credit-card help later, just ask and I will switch to card guidance.",
-      intent: "general_chat",
+      message: fallbackByMode,
+      intent: chatMode === "finance" ? "finance_education" : "general_chat",
       profileUpdates: {},
       mergedProfile: userProfile || {},
       shouldShowRecommendations: false,
@@ -76,6 +82,9 @@ export async function POST(request) {
       body?.userProfile && typeof body.userProfile === "object"
         ? body.userProfile
         : {};
+    const chatMode = ALLOWED_CHAT_MODES.has(body?.chatMode)
+      ? body.chatMode
+      : "auto";
 
     if (messages.length === 0) {
       return Response.json({ error: "Invalid message format" }, { status: 400 });
@@ -85,6 +94,7 @@ export async function POST(request) {
       const aiResponse = await createChatCompletion({
         messages,
         currentProfile: userProfile,
+        forcedMode: chatMode,
       });
       return Response.json(aiResponse);
     } catch (aiError) {
@@ -92,7 +102,7 @@ export async function POST(request) {
         "AI provider failed; fallback used:",
         aiError?.message || aiError,
       );
-      return Response.json(getFallbackResponse(messages, userProfile));
+      return Response.json(getFallbackResponse(messages, userProfile, chatMode));
     }
   } catch (error) {
     console.error("Chat API Error:", error);

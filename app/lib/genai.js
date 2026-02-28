@@ -4,6 +4,7 @@ import path from "node:path";
 
 const MODEL_NAME = process.env.GEMINI_MODEL || "gemini-flash-latest";
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+const FORCED_MODES = new Set(["auto", "general", "finance", "cards"]);
 const CARD_INTENT_REGEX =
   /\b(credit card|card recommendation|card advise|best card|cashback|reward points|lounge|annual fee|joining fee|emi card|fuel card|travel card|finance card)\b/i;
 const FALLBACK_REPLY =
@@ -46,6 +47,11 @@ Behavior:
 - Do not switch to credit-card recommendations unless card_mode=true.
 - If card_mode=false, do not ask for income, spending, fee preference, or card profile details.
 - If card_mode=true, provide strong finance and credit-card guidance using only the card catalog.
+- Respect interaction_mode:
+  - interaction_mode=general: stay in broad general chat only.
+  - interaction_mode=finance: focus on finance education/advice but do not collect card profile.
+  - interaction_mode=cards: focus on card advisory and profile collection.
+  - interaction_mode=auto: infer from user intent.
 - Never invent card facts that are missing from the card catalog.
 - Ask at most one follow-up question in a turn.
 
@@ -292,6 +298,11 @@ function normalizeIntent(intent = "") {
   return "general_chat";
 }
 
+function normalizeForcedMode(mode = "auto") {
+  if (FORCED_MODES.has(mode)) return mode;
+  return "auto";
+}
+
 function normalizeModelPayload(payload = {}) {
   if (!payload || typeof payload !== "object") {
     return {
@@ -322,11 +333,13 @@ function buildPrompt({
   heuristicProfile,
   cardsKnowledge,
   cardMode,
+  forcedMode,
 }) {
   return `${DOMAIN_SYSTEM_PROMPT}
 
 Conversation mode:
 - card_mode=${cardMode}
+- interaction_mode=${forcedMode}
 - If card_mode=false, stay in general chat and do not ask profile questions.
 - If card_mode=true, use the profile schema and card catalog to guide card decisions.
 
@@ -348,6 +361,7 @@ Respond now with the required JSON object only.`;
 export async function createChatCompletion({
   messages = [],
   currentProfile = {},
+  forcedMode = "auto",
 }) {
   if (!process.env.GEMINI_API_KEY) {
     throw new Error("Gemini API key is missing");
@@ -364,7 +378,14 @@ export async function createChatCompletion({
     .slice(-3)
     .map((message) => message.content || "")
     .join(" ");
-  const cardMode = isCardIntentText(recentUserText);
+  const normalizedMode = normalizeForcedMode(forcedMode);
+  const detectedCardMode = isCardIntentText(recentUserText);
+  const cardMode =
+    normalizedMode === "cards"
+      ? true
+      : normalizedMode === "general" || normalizedMode === "finance"
+        ? false
+        : detectedCardMode;
 
   const normalizedCurrentProfile = normalizeProfileShape(currentProfile);
   const heuristicProfile = cardMode ? extractProfileFromText(latestUserMessage) : {};
@@ -375,6 +396,7 @@ export async function createChatCompletion({
     heuristicProfile,
     cardsKnowledge: buildCardsKnowledge(cards),
     cardMode,
+    forcedMode: normalizedMode,
   });
 
   const result = await model.generateContent(prompt);
@@ -394,11 +416,16 @@ export async function createChatCompletion({
 
   return {
     message: modelPayload.reply,
-    intent: cardMode
-      ? modelPayload.intent
-      : modelPayload.intent === "finance_education"
-        ? "finance_education"
-        : "general_chat",
+    intent:
+      normalizedMode === "general"
+        ? "general_chat"
+        : normalizedMode === "finance"
+          ? "finance_education"
+          : cardMode
+            ? modelPayload.intent
+            : modelPayload.intent === "finance_education"
+              ? "finance_education"
+              : "general_chat",
     profileUpdates: mergedUpdates,
     mergedProfile,
     shouldShowRecommendations,

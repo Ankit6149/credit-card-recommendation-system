@@ -15,12 +15,6 @@ function isActive(pathname, item) {
   return pathname === item.href || pathname.startsWith(`${item.href}/`);
 }
 
-function baseDesktopClass(onChatPage) {
-  return onChatPage
-    ? "hidden sm:flex items-center gap-2 rounded-2xl border border-primary-700/50 bg-primary-900/55 p-2 backdrop-blur-md"
-    : "hidden sm:flex items-center gap-2 rounded-2xl border border-primary-700/30 bg-primary-900/35 p-2 backdrop-blur-sm";
-}
-
 function itemClass(active) {
   if (active) {
     return "rounded-xl bg-gradient-to-r from-primary-600 to-accent-600 px-4 py-2 text-sm font-semibold text-primary-50 shadow";
@@ -39,11 +33,10 @@ function mobileItemClass(active) {
 export default function Navigation() {
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const onChatPage = pathname?.startsWith("/chatbot");
 
   return (
-    <div className="relative">
-      <ul className={baseDesktopClass(onChatPage)}>
+    <nav className="relative flex items-center">
+      <ul className="hidden sm:flex items-center gap-2 rounded-2xl border border-primary-700/40 bg-primary-900/45 p-2 backdrop-blur-sm">
         {NAV_ITEMS.map((item) => (
           <li key={item.href}>
             <Link href={item.href} className={itemClass(isActive(pathname, item))}>
@@ -87,6 +80,6 @@ export default function Navigation() {
           </ul>
         </div>
       )}
-    </div>
+    </nav>
   );
 }
