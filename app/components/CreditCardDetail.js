@@ -49,27 +49,27 @@ export default function CreditCardDetail({ card, source = "local" }) {
         <div className="absolute -right-20 top-32 h-96 w-96 rounded-full bg-accent-500/15 blur-3xl"></div>
       </div>
 
-      <div className="relative mx-auto max-w-6xl px-4 py-6 sm:px-6">
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+      <div className="relative mx-auto max-w-6xl px-3 py-5 sm:px-6 sm:py-6">
+        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
           <button
             onClick={() => router.back()}
             className="inline-flex items-center gap-2 rounded-full border border-primary-600/60 bg-primary-800/70 px-4 py-2 text-sm font-medium text-primary-100 transition hover:border-accent-500/60 hover:text-accent-100"
           >
-            <span aria-hidden>←</span>
+            <span aria-hidden>&lt;-</span>
             <span>Back</span>
           </button>
           <SourceBadge source={source} />
         </div>
 
-        <section className="overflow-hidden rounded-3xl border border-primary-700/50 bg-gradient-to-br from-primary-900/90 to-primary-950 shadow-[0_18px_50px_rgba(9,14,22,0.45)]">
-          <header className="relative border-b border-primary-700/60 bg-gradient-to-r from-primary-800/75 to-accent-800/35 px-6 py-6">
+        <section className="overflow-hidden rounded-2xl border border-primary-700/50 bg-gradient-to-br from-primary-900/90 to-primary-950 shadow-[0_18px_50px_rgba(9,14,22,0.45)] sm:rounded-3xl">
+          <header className="relative border-b border-primary-700/60 bg-gradient-to-r from-primary-800/75 to-accent-800/35 px-4 py-5 sm:px-6 sm:py-6">
             <div className="grid gap-5 md:grid-cols-[1.2fr_0.8fr] md:items-center">
               <div>
                 <p className="text-xs uppercase tracking-[0.2em] text-primary-300">
                   Credit Card Profile
                 </p>
-                <h1 className="mt-2 text-3xl font-semibold text-primary-50">{card.name}</h1>
-                <p className="mt-1 text-base text-primary-200">{card.issuer}</p>
+                <h1 className="mt-2 text-2xl font-semibold text-primary-50 sm:text-3xl">{card.name}</h1>
+                <p className="mt-1 text-sm text-primary-200 sm:text-base">{card.issuer}</p>
 
                 <div className="mt-4 flex flex-wrap gap-2">
                   <span className="rounded-full border border-accent-500/40 bg-accent-700/30 px-3 py-1 text-xs text-accent-100">
@@ -81,7 +81,7 @@ export default function CreditCardDetail({ card, source = "local" }) {
                 </div>
               </div>
 
-              <div className="relative h-24 overflow-hidden rounded-2xl border border-primary-700/50 bg-primary-900/70">
+              <div className="relative h-20 overflow-hidden rounded-2xl border border-primary-700/50 bg-primary-900/70 sm:h-24">
                 <Image
                   src="/cardxpert-card.svg"
                   alt={`${card.name} card image`}
@@ -93,13 +93,13 @@ export default function CreditCardDetail({ card, source = "local" }) {
             </div>
           </header>
 
-          <div className="border-b border-primary-700/60 px-4 sm:px-6">
-            <div className="flex flex-wrap gap-2 py-3">
+          <div className="border-b border-primary-700/60 px-3 sm:px-6">
+            <div className="flex gap-2 overflow-x-auto py-3 no-scrollbar">
               {TABS.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`rounded-lg px-3 py-2 text-sm font-medium transition ${
+                  className={`shrink-0 rounded-lg px-3 py-2 text-sm font-medium transition ${
                     activeTab === tab.id
                       ? "bg-primary-600 text-primary-50"
                       : "text-primary-200 hover:bg-primary-800/70 hover:text-accent-100"
@@ -111,10 +111,10 @@ export default function CreditCardDetail({ card, source = "local" }) {
             </div>
           </div>
 
-          <div className="px-4 py-6 sm:px-6">
+          <div className="px-3 py-5 sm:px-6 sm:py-6">
             {activeTab === "overview" && (
               <div className="space-y-5">
-                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                   <div className="rounded-xl border border-primary-700/50 bg-primary-800/55 p-4">
                     <p className="text-xs uppercase tracking-wide text-primary-300">Reward Type</p>
                     <p className="mt-1 text-sm font-semibold text-accent-100">
@@ -225,7 +225,7 @@ export default function CreditCardDetail({ card, source = "local" }) {
             )}
           </div>
 
-          <footer className="border-t border-primary-700/60 bg-primary-950/55 px-6 py-4">
+          <footer className="border-t border-primary-700/60 bg-primary-950/55 px-4 py-4 sm:px-6">
             <Link
               href="/cardsList"
               className="inline-flex rounded-lg border border-accent-500/50 bg-accent-700/35 px-4 py-2 text-sm font-medium text-accent-100 transition hover:bg-accent-700/45"
@@ -238,5 +238,3 @@ export default function CreditCardDetail({ card, source = "local" }) {
     </div>
   );
 }
-
-

@@ -2,8 +2,8 @@ export default function UserProfile({ userProfile, onClear }) {
   if (Object.keys(userProfile).length === 0) return null;
 
   return (
-    <div className="border-y border-primary-700/40 bg-primary-900/60 px-5 py-4 backdrop-blur-md">
-      <div className="flex items-start justify-between gap-4">
+    <div className="border-y border-primary-700/40 bg-primary-900/60 px-4 py-3 backdrop-blur-md sm:px-5 sm:py-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
         <section>
           <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-primary-300">
             Active Card Profile
@@ -39,7 +39,7 @@ export default function UserProfile({ userProfile, onClear }) {
         </section>
         <button
           onClick={onClear}
-          className="rounded-md border border-primary-600/60 px-3 py-1 text-xs font-medium text-primary-200 transition hover:border-accent-500/50 hover:text-accent-100"
+          className="self-start rounded-md border border-primary-600/60 px-3 py-1 text-xs font-medium text-primary-200 transition hover:border-accent-500/50 hover:text-accent-100"
         >
           Reset Chat
         </button>

@@ -17,7 +17,7 @@ export default function AppChrome({ children }) {
   }, [pathname]);
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="flex min-h-screen flex-col">
       <div
         className={`fixed left-0 top-0 z-[70] h-[2px] bg-gradient-to-r from-primary-500 via-accent-500 to-primary-500 transition-all duration-500 ${
           showRouteBar ? "w-full opacity-100" : "w-0 opacity-0"
@@ -26,11 +26,11 @@ export default function AppChrome({ children }) {
 
       {!isChatbotPage && (
         <header
-          className="fixed top-0 left-0 w-full z-50 bg-gradient-to-b from-primary-950 to-transparent py-3"
+          className="fixed top-0 left-0 z-50 w-full bg-gradient-to-b from-primary-950 to-transparent py-2.5 sm:py-3"
           style={{ pointerEvents: "none" }}
         >
           <div
-            className="absolute inset-0 w-full h-full"
+            className="absolute inset-0 h-full w-full"
             style={{
               zIndex: 0,
               pointerEvents: "none",
@@ -45,7 +45,7 @@ export default function AppChrome({ children }) {
           />
 
           <div
-            className="relative mx-auto flex w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8"
+            className="relative mx-auto flex w-full max-w-7xl items-center justify-between px-3 sm:px-6 lg:px-8"
             style={{ pointerEvents: "auto", zIndex: 1 }}
           >
             <Logo />
@@ -56,13 +56,13 @@ export default function AppChrome({ children }) {
 
       <main
         key={pathname}
-        className={`${isChatbotPage ? "pt-0 px-0 py-0" : "pt-24 px-4 sm:px-6 lg:px-8 py-6"} page-enter flex-1`}
+        className={`${isChatbotPage ? "pt-0 px-0 py-0" : "pt-20 px-3 py-6 sm:px-6 sm:pt-24 lg:px-8"} page-enter flex-1`}
       >
         {children}
       </main>
 
       {!isChatbotPage && (
-        <footer className="container mx-auto px-4 py-3 sm:px-6 lg:px-8">
+        <footer className="container mx-auto px-3 py-3 sm:px-6 lg:px-8">
           <p className="text-center text-sm text-primary-300">
             Copyright by Ankit Bhardwaj
           </p>

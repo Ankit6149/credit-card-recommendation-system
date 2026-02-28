@@ -201,27 +201,27 @@ export default function ChatInterface() {
 
   return (
     <div className="mx-auto h-full w-full max-w-5xl">
-      <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-primary-700/60 bg-primary-900/85 shadow-[0_16px_45px_rgba(9,14,22,0.45)]">
+      <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-primary-700/60 bg-primary-900/85 shadow-[0_16px_45px_rgba(9,14,22,0.45)] sm:rounded-2xl">
         <header className="shrink-0 border-b border-primary-700/60 bg-primary-900/95 px-4 py-4 sm:px-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="text-xl font-semibold text-primary-50">CardXpert Pro</h2>
+              <h2 className="text-lg font-semibold text-primary-50 sm:text-xl">CardXpert Pro</h2>
               <p className="text-xs text-primary-300">{modeDescription(chatMode)}</p>
             </div>
             <button
               onClick={clearChat}
-              className="rounded-lg border border-primary-600/70 bg-primary-900/55 px-3 py-2 text-xs font-medium text-primary-100 transition hover:border-accent-500/60 hover:text-accent-100"
+              className="w-full rounded-lg border border-primary-600/70 bg-primary-900/55 px-3 py-2 text-xs font-medium text-primary-100 transition hover:border-accent-500/60 hover:text-accent-100 sm:w-auto"
             >
               New Chat
             </button>
           </div>
 
-          <div className="mt-4 flex flex-wrap gap-2">
+          <div className="mt-4 flex gap-2 overflow-x-auto pb-1 no-scrollbar">
             {CHAT_MODES.map((mode) => (
               <button
                 key={mode.id}
                 onClick={() => setChatMode(mode.id)}
-                className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
                   chatMode === mode.id
                     ? "bg-gradient-to-r from-primary-600 to-accent-600 text-primary-50"
                     : "border border-primary-600/60 bg-primary-800/70 text-primary-200 hover:border-accent-500/60 hover:text-accent-100"
@@ -234,13 +234,13 @@ export default function ChatInterface() {
         </header>
 
         <div className="shrink-0 border-b border-primary-700/50 bg-primary-900/60 px-4 py-3 sm:px-6">
-          <div className="flex flex-wrap gap-2">
+          <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
             {quickPrompts.map((prompt) => (
               <button
                 key={prompt}
                 onClick={() => sendMessage(prompt)}
                 disabled={isLoading}
-                className="rounded-full border border-primary-600/60 bg-primary-800/55 px-3 py-1.5 text-xs text-primary-100 transition hover:border-accent-500/60 hover:text-accent-100 disabled:opacity-50"
+                className="shrink-0 rounded-full border border-primary-600/60 bg-primary-800/55 px-3 py-1.5 text-xs text-primary-100 transition hover:border-accent-500/60 hover:text-accent-100 disabled:opacity-50"
               >
                 {prompt}
               </button>
@@ -259,7 +259,7 @@ export default function ChatInterface() {
 
           {isLoading && (
             <article className="border-b border-primary-800/60 bg-primary-900/65">
-              <div className="mx-auto flex w-full max-w-4xl items-start gap-3 px-4 py-5 sm:px-6">
+              <div className="mx-auto flex w-full max-w-4xl items-start gap-3 px-3 py-5 sm:px-6">
                 <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-gradient-to-br from-primary-500 to-accent-500 text-[11px] font-semibold text-accent-50">
                   AI
                 </div>
@@ -282,7 +282,7 @@ export default function ChatInterface() {
           <div ref={endRef} />
         </section>
 
-        <div className="shrink-0 border-t border-primary-700/60 bg-primary-900/92 px-4 py-3 sm:px-6">
+        <div className="shrink-0 border-t border-primary-700/60 bg-primary-900/92 px-3 py-3 sm:px-6">
           <UserInput onSendMessage={sendMessage} disabled={isLoading} />
         </div>
       </div>

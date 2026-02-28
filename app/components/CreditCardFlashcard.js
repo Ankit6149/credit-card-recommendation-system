@@ -71,12 +71,10 @@ export default function CreditCardFlashcard({ card }) {
         <footer className="pt-1">
           <div className="inline-flex items-center gap-2 text-sm font-semibold text-accent-200">
             View details
-            <span aria-hidden>→</span>
+            <span aria-hidden>-&gt;</span>
           </div>
         </footer>
       </div>
     </article>
   );
 }
-
-

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const NAV_ITEMS = [
   { href: "/", label: "Home", exact: true },
@@ -17,9 +17,9 @@ function isActive(pathname, item) {
 
 function desktopItemClass(active) {
   if (active) {
-    return "inline-flex items-center rounded-xl bg-gradient-to-r from-primary-600 to-accent-600 px-5 py-2.5 text-sm font-semibold text-primary-50 shadow-md shadow-primary-950/30";
+    return "inline-flex items-center rounded-xl bg-gradient-to-r from-primary-600 to-accent-600 px-4 py-2.5 text-sm font-semibold text-primary-50 shadow-md shadow-primary-950/30 lg:px-5";
   }
-  return "inline-flex items-center rounded-xl px-5 py-2.5 text-sm font-medium text-primary-200 transition-all duration-300 hover:bg-primary-800/75 hover:text-accent-100";
+  return "inline-flex items-center rounded-xl px-4 py-2.5 text-sm font-medium text-primary-200 transition-all duration-300 hover:bg-primary-800/75 hover:text-accent-100 lg:px-5";
 }
 
 function mobileItemClass(active) {
@@ -33,9 +33,13 @@ export default function Navigation() {
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  useEffect(() => {
+    setIsMenuOpen(false);
+  }, [pathname]);
+
   return (
     <nav className="relative flex items-center">
-      <ul className="hidden sm:flex items-center gap-1.5 rounded-2xl border border-primary-700/45 bg-primary-900/50 p-1.5 backdrop-blur-sm">
+      <ul className="hidden items-center gap-1.5 rounded-2xl border border-primary-700/45 bg-primary-900/50 p-1.5 backdrop-blur-sm sm:flex">
         {NAV_ITEMS.map((item) => (
           <li key={item.href} className="leading-none">
             <Link href={item.href} className={desktopItemClass(isActive(pathname, item))}>
@@ -63,7 +67,7 @@ export default function Navigation() {
       </div>
 
       {isMenuOpen && (
-        <div className="absolute right-0 top-12 z-50 w-64 rounded-2xl border border-primary-700/60 bg-primary-950/95 p-3 shadow-2xl backdrop-blur-lg sm:hidden">
+        <div className="absolute right-0 top-12 z-50 w-[min(18rem,calc(100vw-1rem))] rounded-2xl border border-primary-700/60 bg-primary-950/95 p-3 shadow-2xl backdrop-blur-lg sm:hidden">
           <ul className="space-y-2">
             {NAV_ITEMS.map((item) => (
               <li key={item.href}>

@@ -126,8 +126,8 @@ export default function CardsListPage() {
         <div className="absolute -right-20 top-32 h-96 w-96 rounded-full bg-accent-500/15 blur-3xl"></div>
       </div>
 
-      <div className="relative mx-auto max-w-7xl px-4 py-6 sm:px-6">
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+      <div className="relative mx-auto max-w-7xl px-3 py-5 sm:px-6 sm:py-6">
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-3 sm:mb-6">
           <Link
             href="/"
             className="inline-flex items-center gap-2 rounded-full border border-primary-600/60 bg-primary-800/60 px-4 py-2 text-sm font-medium text-primary-100 transition hover:border-accent-500/60 hover:text-accent-100"
@@ -137,8 +137,8 @@ export default function CardsListPage() {
           <SourceBadge source={source} />
         </div>
 
-        <section className="mb-6 rounded-3xl border border-primary-700/50 bg-gradient-to-br from-primary-900/85 to-primary-950/95 p-6 shadow-[0_18px_50px_rgba(9,14,22,0.45)]">
-          <h1 className="text-3xl font-semibold text-primary-50 sm:text-4xl">
+        <section className="mb-5 rounded-3xl border border-primary-700/50 bg-gradient-to-br from-primary-900/85 to-primary-950/95 p-4 shadow-[0_18px_50px_rgba(9,14,22,0.45)] sm:mb-6 sm:p-6">
+          <h1 className="text-2xl font-semibold text-primary-50 sm:text-4xl">
             Credit Cards Directory
           </h1>
           <p className="mt-3 max-w-3xl text-sm leading-relaxed text-primary-200 sm:text-base">
@@ -146,13 +146,13 @@ export default function CardsListPage() {
             Search naturally and narrow by reward type to find the right fit.
           </p>
 
-          <div className="mt-5 grid gap-3 md:grid-cols-2 lg:grid-cols-5">
+          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
             <input
               type="text"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Search by card, issuer, rewards..."
-              className="lg:col-span-2 rounded-xl border border-primary-600/60 bg-primary-800/60 px-4 py-2.5 text-sm text-primary-50 placeholder:text-primary-300 focus:outline-none focus:ring-2 focus:ring-accent-500/70"
+              className="sm:col-span-2 lg:col-span-2 rounded-xl border border-primary-600/60 bg-primary-800/60 px-4 py-2.5 text-sm text-primary-50 placeholder:text-primary-300 focus:outline-none focus:ring-2 focus:ring-accent-500/70"
             />
 
             <select
@@ -260,8 +260,8 @@ export default function CardsListPage() {
                 href={`/cardsList/${card.slug || createSlug(card.name)}`}
                 className="block rounded-2xl border border-primary-700/50 bg-primary-900/80 px-4 py-4 transition hover:border-accent-500/45 hover:bg-primary-900"
               >
-                <div className="grid gap-4 lg:grid-cols-[minmax(220px,1.45fr)_minmax(120px,0.8fr)_minmax(150px,0.9fr)_minmax(170px,1fr)_auto] lg:items-center">
-                  <div className="min-w-0">
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(220px,1.45fr)_minmax(120px,0.8fr)_minmax(150px,0.9fr)_minmax(170px,1fr)_auto] xl:items-center">
+                  <div className="min-w-0 sm:col-span-2 xl:col-span-1">
                     <h3 className="truncate text-lg font-semibold text-primary-50">{card.name}</h3>
                     <p className="truncate text-sm text-primary-300">{card.issuer}</p>
                   </div>
@@ -283,7 +283,7 @@ export default function CardsListPage() {
                     <p className="truncate font-semibold text-accent-100">{card.reward_rate}</p>
                   </div>
 
-                  <div className="text-left lg:text-right">
+                  <div className="text-left sm:col-span-2 sm:text-right xl:col-span-1">
                     <span className="text-sm font-semibold text-accent-200">View details -&gt;</span>
                   </div>
                 </div>

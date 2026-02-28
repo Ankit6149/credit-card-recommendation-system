@@ -76,8 +76,9 @@ function feeScore(cardFee = 0, feePreference = "") {
   if (!feePreference) return 8;
   if (feePreference === "free") return cardFee === 0 ? 28 : 0;
   if (feePreference === "low") return cardFee <= 1000 ? 24 : cardFee <= 2500 ? 10 : 0;
-  if (feePreference === "medium")
+  if (feePreference === "medium") {
     return cardFee > 1000 && cardFee <= 5000 ? 20 : cardFee <= 1000 ? 12 : 6;
+  }
   if (feePreference === "high") return cardFee > 2000 ? 16 : 8;
   return 8;
 }
@@ -187,83 +188,83 @@ export default function Recommendations({ userProfile, show }) {
 
   if (loading) {
     return (
-      <div className="bg-gradient-to-r from-green-50 to-blue-50 border-t border-gray-200 p-6">
-        <h3 className="text-lg font-bold text-gray-800 mb-4">
+      <section className="border-t border-primary-700/60 bg-primary-900/70 p-4 sm:p-6">
+        <h3 className="mb-4 text-base font-semibold text-primary-100 sm:text-lg">
           Loading recommendations...
         </h3>
-        <div className="animate-pulse space-y-4">
+        <div className="space-y-3 animate-pulse">
           {[1, 2].map((i) => (
-            <div key={i} className="bg-accent-600 p-4 rounded-lg border border-gray-200">
-              <div className="h-4 bg-primary-200 rounded w-3/4 mb-2"></div>
-              <div className="h-3 bg-primary-200 rounded w-1/2 mb-2"></div>
-              <div className="h-3 bg-primary-200 rounded w-full"></div>
+            <div key={i} className="rounded-xl border border-primary-700/60 bg-primary-800/60 p-4">
+              <div className="mb-2 h-4 w-3/4 rounded bg-primary-600/60"></div>
+              <div className="mb-2 h-3 w-1/2 rounded bg-primary-600/55"></div>
+              <div className="h-3 w-full rounded bg-primary-600/50"></div>
             </div>
           ))}
         </div>
-      </div>
+      </section>
     );
   }
 
   if (!recommendations.length) {
     return (
-      <div className="bg-gradient-to-l from-accent-300 to-primary-500 border-t border-gray-200 p-6">
-        <h3 className="text-lg font-bold text-gray-800">
+      <section className="border-t border-primary-700/60 bg-primary-900/70 p-4 sm:p-6">
+        <h3 className="text-base font-semibold text-primary-100 sm:text-lg">
           No recommendations available right now.
         </h3>
-      </div>
+      </section>
     );
   }
 
   return (
-    <div className="bg-gradient-to-l from-accent-300 to-primary-500 border-t border-gray-200 p-6">
-      <h3 className="text-lg font-bold text-gray-800 mb-4">
+    <section className="border-t border-primary-700/60 bg-gradient-to-br from-primary-900/75 to-primary-950/75 p-4 sm:p-6">
+      <h3 className="mb-4 text-base font-semibold text-primary-100 sm:text-lg">
         Recommended cards for your profile
       </h3>
 
-      <div className="space-y-4">
-        {recommendations.map((card, index) => (
-          <div
-            key={index}
-            className="bg-accent-200 p-4 rounded-lg border border-accent-500 shadow-sm hover:shadow-md transition-shadow duration-300"
+      <div className="space-y-3">
+        {recommendations.map((card) => (
+          <article
+            key={card.slug}
+            className="rounded-xl border border-primary-700/60 bg-primary-900/80 p-4 transition hover:border-accent-500/45"
           >
-            <div className="flex justify-between items-start">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
-                  <h4 className="font-semibold text-primary-900 text-lg">{card.name}</h4>
-                  <span className="bg-green-600 text-green-100 text-xs px-2 py-1 rounded-full">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0 flex-1">
+                <div className="mb-2 flex flex-wrap items-center gap-2">
+                  <h4 className="truncate text-base font-semibold text-primary-50 sm:text-lg">
+                    {card.name}
+                  </h4>
+                  <span className="rounded-full border border-accent-500/50 bg-accent-700/35 px-2 py-0.5 text-[11px] font-medium text-accent-100">
                     {Math.round(card.score)}% match
                   </span>
                 </div>
-                <p className="text-gray-600 text-sm mb-2">{card.issuer}</p>
-                <p className="text-gray-700 text-sm mb-3">{card.reason}</p>
-                <div className="flex items-center gap-4">
-                  <p className="text-primary-600 font-medium">
-                    Annual Fee: {card.annualFeeLabel}
-                  </p>
+                <p className="mb-2 text-sm text-primary-300">{card.issuer}</p>
+                <p className="mb-3 text-sm leading-relaxed text-primary-200">{card.reason}</p>
+                <div className="flex flex-wrap items-center gap-3 text-sm">
+                  <p className="font-medium text-accent-100">Annual Fee: {card.annualFeeLabel}</p>
                   {card.reward_rate && (
-                    <p className="text-gray-600 text-sm">Reward: {card.reward_rate}</p>
+                    <p className="text-primary-300">Reward: {card.reward_rate}</p>
                   )}
                 </div>
               </div>
               <Link
                 href={`/cardsList/${card.slug}`}
-                className="bg-gradient-to-r from-primary-600 to-accent-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:from-primary-700 hover:to-accent-700 transition-all duration-300"
+                className="inline-flex w-full justify-center rounded-lg bg-gradient-to-r from-primary-600 to-accent-600 px-4 py-2 text-sm font-medium text-primary-50 transition hover:from-primary-700 hover:to-accent-700 sm:w-auto"
               >
                 View Details
               </Link>
             </div>
-          </div>
+          </article>
         ))}
       </div>
 
-      <div className="mt-6 text-center">
+      <div className="mt-5 text-center sm:text-left">
         <Link
           href="/cardsList"
-          className="text-primary-600 hover:text-primary-700 font-medium underline"
+          className="text-sm font-medium text-accent-200 underline hover:text-accent-100"
         >
           View all credit cards
         </Link>
       </div>
-    </div>
+    </section>
   );
 }

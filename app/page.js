@@ -33,44 +33,44 @@ export default function HomePage() {
         <div className="absolute bottom-16 left-1/3 h-72 w-72 rounded-full bg-primary-700/20 blur-3xl"></div>
       </div>
 
-      <div className="relative mx-auto w-full max-w-7xl px-4 pt-6 sm:px-6 lg:pt-10 2xl:max-w-[1280px]">
-        <section className="grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
-          <article className="rounded-3xl border border-primary-700/50 bg-gradient-to-br from-primary-900/90 to-primary-950 p-6 shadow-[0_18px_55px_rgba(8,14,22,0.5)] sm:p-8">
-            <p className="mb-4 inline-flex rounded-full border border-accent-500/50 bg-accent-700/25 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-accent-100">
+      <div className="relative mx-auto w-full max-w-7xl px-3 pt-5 sm:px-6 sm:pt-6 lg:pt-10 2xl:max-w-[1280px]">
+        <section className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr] xl:gap-5">
+          <article className="rounded-3xl border border-primary-700/50 bg-gradient-to-br from-primary-900/90 to-primary-950 p-5 shadow-[0_18px_55px_rgba(8,14,22,0.5)] sm:p-8">
+            <p className="mb-4 inline-flex rounded-full border border-accent-500/50 bg-accent-700/25 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-accent-100 sm:text-xs">
               Intelligent Credit Card Discovery
             </p>
 
-            <h1 className="text-3xl font-semibold leading-tight text-primary-50 sm:text-5xl xl:text-[3.35rem]">
+            <h1 className="text-2xl font-semibold leading-tight text-primary-50 sm:text-4xl xl:text-[3.35rem]">
               CardXpert Pro
               <span className="block bg-gradient-to-r from-accent-300 to-accent-500 bg-clip-text text-transparent">
                 Find The Right Card Faster
               </span>
             </h1>
 
-            <p className="mt-5 max-w-3xl text-sm leading-relaxed text-primary-200 sm:text-base">
+            <p className="mt-4 max-w-3xl text-sm leading-relaxed text-primary-200 sm:mt-5 sm:text-base">
               Compare, evaluate, and chat through your decision with a
               production-ready AI assistant. CardXpert Pro helps you shortlist
               the best card options based on reward type, annual fee,
               eligibility, and your personal preferences.
             </p>
 
-            <div className="mt-8 flex flex-wrap gap-3 sm:gap-4">
+            <div className="mt-7 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:flex-wrap sm:gap-4">
               <Link
                 href="/chatbot"
-                className="rounded-xl bg-gradient-to-r from-primary-600 to-accent-600 px-5 py-3 text-sm font-semibold text-primary-50 transition hover:from-primary-700 hover:to-accent-700"
+                className="w-full rounded-xl bg-gradient-to-r from-primary-600 to-accent-600 px-5 py-3 text-center text-sm font-semibold text-primary-50 transition hover:from-primary-700 hover:to-accent-700 sm:w-auto"
               >
                 Start AI Chat
               </Link>
               <Link
                 href="/cardsList"
-                className="rounded-xl border border-primary-600/70 bg-primary-900/65 px-5 py-3 text-sm font-semibold text-primary-100 transition hover:border-accent-500/60 hover:text-accent-100"
+                className="w-full rounded-xl border border-primary-600/70 bg-primary-900/65 px-5 py-3 text-center text-sm font-semibold text-primary-100 transition hover:border-accent-500/60 hover:text-accent-100 sm:w-auto"
               >
                 Browse All Cards
               </Link>
             </div>
           </article>
 
-          <article className="rounded-3xl border border-primary-700/50 bg-primary-900/85 p-6 shadow-[0_18px_55px_rgba(8,14,22,0.5)] sm:p-8">
+          <article className="rounded-3xl border border-primary-700/50 bg-primary-900/85 p-5 shadow-[0_18px_55px_rgba(8,14,22,0.5)] sm:p-8">
             <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-primary-300">
               Platform Highlights
             </h2>
@@ -120,7 +120,7 @@ export default function HomePage() {
         </section>
 
         <section className="mt-8 grid gap-4 lg:grid-cols-2 xl:mt-10">
-          <article className="rounded-2xl border border-primary-700/50 bg-primary-900/75 p-6">
+          <article className="rounded-2xl border border-primary-700/50 bg-primary-900/75 p-5 sm:p-6">
             <h3 className="text-lg font-semibold text-primary-100">
               Need Recommendations?
             </h3>
@@ -136,7 +136,7 @@ export default function HomePage() {
             </Link>
           </article>
 
-          <article className="rounded-2xl border border-primary-700/50 bg-primary-900/75 p-6">
+          <article className="rounded-2xl border border-primary-700/50 bg-primary-900/75 p-5 sm:p-6">
             <h3 className="text-lg font-semibold text-primary-100">
               Prefer Manual Comparison?
             </h3>
