@@ -1,241 +1,253 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import CreditCardFlashcard from "../components/CreditCardFlashcard";
-import Image from "next/image";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import CreditCardFlashcard from "../components/CreditCardFlashcard";
+import createSlug from "../lib/helper";
 
-function Page() {
-  const [creditCards, setCreditCards] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+const REWARD_OPTIONS = [
+  { label: "All Types", value: "all" },
+  { label: "Cashback", value: "cashback" },
+  { label: "Reward Points", value: "reward" },
+  { label: "Travel", value: "travel" },
+];
 
-  const [viewMode, setViewMode] = useState("grid");
-  const [sortBy, setSortBy] = useState("name");
-  const [filterBy, setFilterBy] = useState("all");
+function buildQuery(params = {}) {
+  const query = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value === undefined || value === null || value === "") return;
+    query.set(key, String(value));
+  });
+  return query.toString();
+}
 
-  // Fetch credit card data from JSON file
-  useEffect(() => {
-    const fetchCreditCards = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch("/data/cardsData.json");
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch credit card data");
-        }
-
-        const data = await response.json();
-        setCreditCards(data);
-      } catch (err) {
-        setError(err.message);
-        console.error("Error fetching credit cards:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCreditCards();
-  }, []);
-
-  // Filter and sort functions
-  const getFilteredAndSortedCards = () => {
-    let filtered = creditCards;
-
-    if (filterBy !== "all") {
-      filtered = creditCards.filter((card) =>
-        card.reward_type.toLowerCase().includes(filterBy.toLowerCase())
-      );
-    }
-
-    const sorted = [...filtered].sort((a, b) => {
-      switch (sortBy) {
-        case "name":
-          return a.name.localeCompare(b.name);
-        case "annual_fee":
-          return a.annual_fee - b.annual_fee;
-        case "issuer":
-          return a.issuer.localeCompare(b.issuer);
-        default:
-          return 0;
-      }
-    });
-
-    return sorted;
-  };
-
-  // Create URL-friendly slug from card name
-  const createSlug = (name) => {
-    return name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/(^-|-$)/g, "");
-  };
-
-  // Loading state
-
-  // Error state
-  if (error) {
+function SourceBadge({ source }) {
+  if (source === "external") {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg
-              className="w-8 h-8 text-red-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-          </div>
-          <h2 className="text-xl font-semibold text-accent-300 mb-2">
-            Error Loading Data
-          </h2>
-          <p className="text-accent-300 mb-4">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="bg-primary-600 text-accent-200 px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors duration-300"
-          >
-            Try Again
-          </button>
-        </div>
-      </div>
+      <span className="rounded-full border border-accent-500/50 bg-accent-700/30 px-3 py-1 text-xs font-medium text-accent-100">
+        Live API Source
+      </span>
     );
   }
 
-  const filteredCards = getFilteredAndSortedCards();
+  return (
+    <span className="rounded-full border border-primary-600/50 bg-primary-800/45 px-3 py-1 text-xs font-medium text-primary-100">
+      Local Dataset Fallback
+    </span>
+  );
+}
+
+export default function CardsListPage() {
+  const [cards, setCards] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [source, setSource] = useState("local");
+
+  const [viewMode, setViewMode] = useState("grid");
+  const [search, setSearch] = useState("");
+  const [rewardType, setRewardType] = useState("all");
+  const [sortBy, setSortBy] = useState("name");
+  const [sortOrder, setSortOrder] = useState("asc");
+
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(12);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    pageSize: 12,
+    total: 0,
+    totalPages: 1,
+  });
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setPage(1);
+    }, 250);
+    return () => clearTimeout(timeout);
+  }, [search, rewardType, sortBy, sortOrder]);
+
+  useEffect(() => {
+    let active = true;
+
+    const loadCards = async () => {
+      setLoading(true);
+      setError("");
+      try {
+        const query = buildQuery({
+          page,
+          pageSize,
+          q: search,
+          rewardType,
+          sortBy,
+          sortOrder,
+        });
+
+        const response = await fetch(`/api/cards?${query}`, { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error("Unable to fetch cards");
+        }
+
+        const payload = await response.json();
+        if (!active) return;
+
+        setCards(Array.isArray(payload.cards) ? payload.cards : []);
+        setSource(payload.source || "local");
+        setPagination(
+          payload.pagination || {
+            page: 1,
+            pageSize: 12,
+            total: 0,
+            totalPages: 1,
+          },
+        );
+      } catch (err) {
+        if (!active) return;
+        setError(err.message || "Something went wrong");
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+
+    loadCards();
+    return () => {
+      active = false;
+    };
+  }, [page, pageSize, search, rewardType, sortBy, sortOrder]);
+
+  const isExternalSource = source === "external";
+
+  const resultSummary = useMemo(() => {
+    if (loading) return "Loading cards...";
+    if (error) return "Unable to load cards";
+    return `${pagination.total || cards.length} cards found`;
+  }, [cards.length, error, loading, pagination.total]);
 
   return (
-    <div className="min-h-screen">
-      {/* Header Section */}
-      <div className="bg-primary-950 shadow-sm">
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center mb-8">
-            <h1 className="text-5xl text-accent-600 mb-4">
-              Best Credit Cards in India
-            </h1>
-            <p className="text-lg text-accent-100 font-light max-w-2xl mx-auto">
-              Browse our curated list of top Indian credit cards, complete with
-              details on rewards, fees, eligibility, and exclusive perks — all
-              in one place. Compare and choose the perfect credit card for your
-              needs
-            </p>
-          </div>
-
-          {/* Controls */}
-          <div className="flex flex-col lg:flex-row justify-between items-center space-y-4 lg:space-y-0 lg:space-x-4">
-            {/* View Toggle */}
-            <div className="flex bg-primary-300 rounded-lg p-1">
-              <button
-                onClick={() => setViewMode("grid")}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-300 ${
-                  viewMode === "grid"
-                    ? "bg-primary-700 text-accent-100 shadow-sm"
-                    : "text-primary-800 hover:text-primary-900"
-                }`}
-              >
-                <svg
-                  className="w-4 h-4 inline mr-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
-                  />
-                </svg>
-                Grid View
-              </button>
-              <button
-                onClick={() => setViewMode("list")}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-300 ${
-                  viewMode === "list"
-                    ? "bg-primary-700 text-accent-100 shadow-sm"
-                    : "text-primary-800 hover:text-primary-900"
-                }`}
-              >
-                <svg
-                  className="w-4 h-4 inline mr-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 6h16M4 10h16M4 14h16M4 18h16"
-                  />
-                </svg>
-                List View
-              </button>
-            </div>
-
-            {/* Filters and Sort */}
-            <div className="flex space-x-4">
-              <select
-                value={filterBy}
-                onChange={(e) => setFilterBy(e.target.value)}
-                className="px-4 py-2 border border-primary-50 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-transparent"
-              >
-                <option value="all" className="bg-primary-700 ">
-                  All Cards
-                </option>
-                <option value="reward" className="bg-primary-700 ">
-                  Reward Points
-                </option>
-                <option value="cashback" className="bg-primary-700 ">
-                  Cashback
-                </option>
-              </select>
-
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="px-4 py-2 border border-primary-50 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-transparent"
-              >
-                <option value="name" className="bg-primary-700 ">
-                  Sort by Name
-                </option>
-                <option value="annual_fee" className="bg-primary-700 ">
-                  Sort by Annual Fee
-                </option>
-                <option value="issuer" className="bg-primary-700 ">
-                  Sort by Issuer
-                </option>
-              </select>
-            </div>
-          </div>
-        </div>
+    <div className="relative min-h-screen overflow-hidden bg-primary-900 pb-8">
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute -left-24 top-8 h-80 w-80 rounded-full bg-primary-500/15 blur-3xl"></div>
+        <div className="absolute -right-20 top-32 h-96 w-96 rounded-full bg-accent-500/15 blur-3xl"></div>
       </div>
 
-      {/* Cards Display */}
-      <div className="container mx-auto px-4 py-8">
-        {/* Results Count */}
-        <div className="mb-6">
-          <p className="text-accent-400">
-            Showing {filteredCards.length} credit card
-            {filteredCards.length !== 1 ? "s" : ""}
-          </p>
+      <div className="relative mx-auto max-w-7xl px-4 py-6 sm:px-6">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 rounded-full border border-primary-600/60 bg-primary-800/60 px-4 py-2 text-sm font-medium text-primary-100 transition hover:border-accent-500/60 hover:text-accent-100"
+          >
+            <span aria-hidden>←</span>
+            <span>Back to Home</span>
+          </Link>
+          <SourceBadge source={source} />
         </div>
 
-        {/* Grid View */}
-        {viewMode === "grid" && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredCards.map((card, index) => (
-              <Link
+        <section className="mb-6 rounded-3xl border border-primary-700/50 bg-gradient-to-br from-primary-900/85 to-primary-950/95 p-6 shadow-[0_18px_50px_rgba(9,14,22,0.45)]">
+          <h1 className="text-3xl font-semibold text-primary-50 sm:text-4xl">
+            Credit Cards Directory
+          </h1>
+          <p className="mt-3 max-w-3xl text-sm leading-relaxed text-primary-200 sm:text-base">
+            Explore and compare cards by fee, reward structure, and issuer.
+            Search naturally and narrow by reward type to find the right fit.
+          </p>
+
+          <div className="mt-5 grid gap-3 md:grid-cols-2 lg:grid-cols-5">
+            <input
+              type="text"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Search by card, issuer, rewards..."
+              className="lg:col-span-2 rounded-xl border border-primary-600/60 bg-primary-800/60 px-4 py-2.5 text-sm text-primary-50 placeholder:text-primary-300 focus:outline-none focus:ring-2 focus:ring-accent-500/70"
+            />
+
+            <select
+              value={rewardType}
+              onChange={(event) => setRewardType(event.target.value)}
+              className="rounded-xl border border-primary-600/60 bg-primary-800/60 px-3 py-2.5 text-sm text-primary-50 focus:outline-none focus:ring-2 focus:ring-accent-500/70"
+            >
+              {REWARD_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={sortBy}
+              onChange={(event) => setSortBy(event.target.value)}
+              className="rounded-xl border border-primary-600/60 bg-primary-800/60 px-3 py-2.5 text-sm text-primary-50 focus:outline-none focus:ring-2 focus:ring-accent-500/70"
+            >
+              <option value="name">Sort: Name</option>
+              <option value="annual_fee">Sort: Annual Fee</option>
+              <option value="issuer">Sort: Issuer</option>
+            </select>
+
+            <button
+              onClick={() =>
+                setSortOrder((current) => (current === "asc" ? "desc" : "asc"))
+              }
+              className="rounded-xl border border-accent-500/40 bg-accent-700/30 px-4 py-2.5 text-sm font-semibold text-accent-100 transition hover:bg-accent-700/45"
+            >
+              {sortOrder === "asc" ? "Ascending" : "Descending"}
+            </button>
+          </div>
+        </section>
+
+        <section className="mb-5 flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm text-primary-300">{resultSummary}</p>
+
+          <div className="inline-flex rounded-xl border border-primary-700/60 bg-primary-900/70 p-1">
+            <button
+              onClick={() => setViewMode("grid")}
+              className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
+                viewMode === "grid"
+                  ? "bg-primary-600 text-primary-50"
+                  : "text-primary-200 hover:text-accent-100"
+              }`}
+            >
+              Grid
+            </button>
+            <button
+              onClick={() => setViewMode("list")}
+              className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
+                viewMode === "list"
+                  ? "bg-primary-600 text-primary-50"
+                  : "text-primary-200 hover:text-accent-100"
+              }`}
+            >
+              List
+            </button>
+          </div>
+        </section>
+
+        {error && (
+          <div className="rounded-2xl border border-red-400/40 bg-red-500/10 px-4 py-3 text-sm text-red-100">
+            {error}
+          </div>
+        )}
+
+        {!error && loading && (
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, index) => (
+              <div
                 key={index}
-                href={`/cardsList/${createSlug(card.name)}`}
-                className="block transition-transform duration-300 hover:scale-105"
+                className="h-64 animate-pulse rounded-2xl border border-primary-700/50 bg-primary-800/50"
+              ></div>
+            ))}
+          </div>
+        )}
+
+        {!error && !loading && cards.length === 0 && (
+          <div className="rounded-2xl border border-primary-700/60 bg-primary-900/75 px-5 py-8 text-center text-primary-200">
+            No cards matched your filters.
+          </div>
+        )}
+
+        {!error && !loading && cards.length > 0 && viewMode === "grid" && (
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {cards.map((card) => (
+              <Link
+                key={card.slug || createSlug(card.name)}
+                href={`/cardsList/${card.slug || createSlug(card.name)}`}
+                className="block"
               >
                 <CreditCardFlashcard card={card} />
               </Link>
@@ -243,86 +255,38 @@ function Page() {
           </div>
         )}
 
-        {/* List View */}
-        {viewMode === "list" && (
-          <div className="space-y-4">
-            {filteredCards.map((card, index) => (
+        {!error && !loading && cards.length > 0 && viewMode === "list" && (
+          <div className="space-y-3">
+            {cards.map((card) => (
               <Link
-                key={index}
-                href={`/cardsList/${createSlug(card.name)}`}
-                className="block"
+                key={card.slug || createSlug(card.name)}
+                href={`/cardsList/${card.slug || createSlug(card.name)}`}
+                className="block rounded-2xl border border-primary-700/50 bg-primary-900/80 px-4 py-4 transition hover:border-accent-500/45 hover:bg-primary-900"
               >
-                <div className="bg-gradient-to-l from-accent-600 to-primary-900 rounded-lg shadow-md hover:shadow-lg transition-all duration-300">
-                  <div className="p-6">
-                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-40">
-                      <div className="flex items-center space-x-4 mb-4 min-w-72">
-                        <div className="min-w-16 min-h-12 bg-gradient-to-br from-primary-500 to-accent-600 rounded-lg flex items-center justify-center">
-                          <span>
-                            <Image
-                              src="/logo2.png"
-                              alt="credit-card-logo"
-                              height="20"
-                              width="50"
-                            />
-                          </span>
-                        </div>
-                        <div>
-                          <h3 className="text-xl font-bold text-accent-500">
-                            {card.name}
-                          </h3>
-                          <p className="text-primary-300">{card.issuer}</p>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 justify-around lg:grid-cols-4 lg:gap-15">
-                        <div className="text-center lg:text-left">
-                          <p className="text-sm text-accent-100 text-shadow-accent-950">
-                            Annual Fee
-                          </p>
-                          <p className="font-semibold text-primary-900 text-lg">
-                            ₹{card.annual_fee.toLocaleString()}
-                          </p>
-                        </div>
-                        <div className="text-center lg:text-left">
-                          <p className="text-sm text-accent-100 text-shadow-accent-950">
-                            Reward Type
-                          </p>
-                          <p className="font-semibold text-primary-900 text-base">
-                            {card.reward_type}
-                          </p>
-                        </div>
-                        <div className="text-center lg:text-left">
-                          <p className="text-sm text-accent-100 text-shadow-accent-950">
-                            Reward Rate
-                          </p>
-                          <p className="font-semibold text-primary-900 text-sm">
-                            {card.reward_rate}
-                          </p>
-                        </div>
-                        <div className="text-center lg:text-right min-w-28 my-3">
-                          <button className="bg-primary-700 text-primary-50 px-4 py-2 rounded-lg text-sm font-medium hover:bg-accent-800 transition-all duration-500">
-                            View Details
-                          </button>
-                        </div>
-                      </div>
+                <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-primary-50">{card.name}</h3>
+                    <p className="text-sm text-primary-300">{card.issuer}</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 text-sm lg:grid-cols-4">
+                    <div>
+                      <p className="text-primary-300">Annual Fee</p>
+                      <p className="font-semibold text-accent-100">
+                        Rs {Number(card.annual_fee || 0).toLocaleString()}
+                      </p>
                     </div>
-
-                    <div className="mt-4 pt-4 border-t border-primary-900">
-                      <div className="flex flex-wrap gap-2">
-                        {card.perks.slice(0, 3).map((perk, perkIndex) => (
-                          <span
-                            key={perkIndex}
-                            className="bg-accent-800 text-primary-50 text-xs px-2 py-1 rounded-full"
-                          >
-                            {perk}
-                          </span>
-                        ))}
-                        {card.perks.length > 3 && (
-                          <span className="bg-accent-800 text-primart-600 text-xs px-2 py-1 rounded-full">
-                            +{card.perks.length - 3} more
-                          </span>
-                        )}
-                      </div>
+                    <div>
+                      <p className="text-primary-300">Reward Type</p>
+                      <p className="font-semibold text-accent-100">{card.reward_type}</p>
+                    </div>
+                    <div>
+                      <p className="text-primary-300">Reward Rate</p>
+                      <p className="font-semibold text-accent-100">{card.reward_rate}</p>
+                    </div>
+                    <div className="self-end text-left lg:text-right">
+                      <span className="text-sm font-semibold text-accent-200">
+                        View details →
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -331,35 +295,34 @@ function Page() {
           </div>
         )}
 
-        {/* Empty State */}
-        {/* {filteredCards.length === 0 && (
-          <div className="text-center py-12">
-            <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg
-                className="w-12 h-12 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                />
-              </svg>
-            </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              No cards found
-            </h3>
-            <p className="text-gray-600">
-              Try adjusting your filters to see more results.
-            </p>
+        {isExternalSource && pagination.totalPages > 1 && (
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
+            <button
+              onClick={() => setPage((current) => Math.max(1, current - 1))}
+              disabled={pagination.page <= 1}
+              className="rounded-lg border border-primary-700/60 bg-primary-900/70 px-3 py-2 text-sm text-primary-100 transition hover:border-accent-500/60 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Prev
+            </button>
+
+            <span className="rounded-lg border border-primary-700/60 bg-primary-900/70 px-3 py-2 text-sm text-primary-100">
+              Page {pagination.page} of {pagination.totalPages}
+            </span>
+
+            <button
+              onClick={() =>
+                setPage((current) =>
+                  Math.min(pagination.totalPages, current + 1),
+                )
+              }
+              disabled={pagination.page >= pagination.totalPages}
+              className="rounded-lg border border-primary-700/60 bg-primary-900/70 px-3 py-2 text-sm text-primary-100 transition hover:border-accent-500/60 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Next
+            </button>
           </div>
-        )} */}
+        )}
       </div>
     </div>
   );
 }
-
-export default Page;

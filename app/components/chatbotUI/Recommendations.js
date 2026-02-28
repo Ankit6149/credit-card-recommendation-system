@@ -149,9 +149,11 @@ export default function Recommendations({ userProfile, show }) {
 
     const loadCardsData = async () => {
       try {
-        const response = await fetch("/data/cardsData.json");
+        const response = await fetch("/api/cards?page=1&pageSize=30", {
+          cache: "no-store",
+        });
         const data = await response.json();
-        setCardsData(Array.isArray(data) ? data : []);
+        setCardsData(Array.isArray(data?.cards) ? data.cards : []);
       } catch (error) {
         console.error("Error loading cards data:", error);
         setCardsData([]);

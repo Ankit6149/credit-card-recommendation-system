@@ -1,61 +1,65 @@
 "use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 
-function Navigation() {
+const NAV_ITEMS = [
+  { href: "/", label: "Home", exact: true },
+  { href: "/cardsList", label: "Credit Cards" },
+  { href: "/chatbot", label: "Ask AI" },
+];
+
+function isActive(pathname, item) {
+  if (item.exact) return pathname === item.href;
+  return pathname === item.href || pathname.startsWith(`${item.href}/`);
+}
+
+function baseDesktopClass(onChatPage) {
+  return onChatPage
+    ? "hidden sm:flex items-center gap-2 rounded-2xl border border-primary-700/50 bg-primary-900/55 p-2 backdrop-blur-md"
+    : "hidden sm:flex items-center gap-2 rounded-2xl border border-primary-700/30 bg-primary-900/35 p-2 backdrop-blur-sm";
+}
+
+function itemClass(active) {
+  if (active) {
+    return "rounded-xl bg-gradient-to-r from-primary-600 to-accent-600 px-4 py-2 text-sm font-semibold text-primary-50 shadow";
+  }
+
+  return "rounded-xl px-4 py-2 text-sm font-medium text-primary-200 transition hover:bg-primary-800/70 hover:text-accent-100";
+}
+
+function mobileItemClass(active) {
+  if (active) {
+    return "block rounded-xl bg-gradient-to-r from-primary-600 to-accent-600 px-4 py-3 text-center text-sm font-semibold text-primary-50";
+  }
+  return "block rounded-xl border border-primary-700/60 bg-primary-900/70 px-4 py-3 text-center text-sm font-medium text-primary-100 transition hover:border-accent-500/60 hover:text-accent-100";
+}
+
+export default function Navigation() {
+  const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
-
-  const closeMenu = () => {
-    setIsMenuOpen(false);
-  };
+  const onChatPage = pathname?.startsWith("/chatbot");
 
   return (
     <div className="relative">
-      {/* Desktop Navigation - Hidden on screens less than 640px */}
-      <ul className="hidden sm:flex gap-5 px-3 py-6 text-shadow-2xm font-700">
-        <li>
-          <Link
-            href="/"
-            className="bg-primary-600 px-6 py-2 rounded-2xl hover:bg-primary-700 transition-all text-white"
-          >
-            Home
-          </Link>
-        </li>
-        <li>
-          <Link
-            href="/cardsList"
-            className="bg-primary-600 px-6 py-2 rounded-2xl hover:bg-primary-700 transition-all text-white"
-          >
-            Credit Cards
-          </Link>
-        </li>
-        <li>
-          <Link
-            href="/chatbot"
-            className="bg-accent-700 px-6 py-2 rounded-2xl hover:bg-accent-800 transition-all text-white"
-          >
-            Ask our AI
-          </Link>
-        </li>
+      <ul className={baseDesktopClass(onChatPage)}>
+        {NAV_ITEMS.map((item) => (
+          <li key={item.href}>
+            <Link href={item.href} className={itemClass(isActive(pathname, item))}>
+              {item.label}
+            </Link>
+          </li>
+        ))}
       </ul>
 
-      {/* List Icon - Shows on screens less than 640px with reduced padding */}
-      <div className="sm:hidden px-4 py-4 flex justify-start pl-6">
+      <div className="sm:hidden">
         <button
-          onClick={toggleMenu}
-          className="px-3 py-2 rounded-2xl hover:bg-gray-100 transition-all"
-          aria-label="Toggle menu"
+          onClick={() => setIsMenuOpen((value) => !value)}
+          className="grid h-10 w-10 place-items-center rounded-xl border border-primary-700/60 bg-primary-900/75 text-primary-100 transition hover:border-accent-500/60 hover:text-accent-100"
+          aria-label="Toggle navigation menu"
         >
-          <svg
-            className="w-8 h-8 text-gray-700"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
+          <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -66,77 +70,23 @@ function Navigation() {
         </button>
       </div>
 
-      {/* Dropdown Menu - Moved towards right */}
       {isMenuOpen && (
-        <div className="absolute top-full right-6 transform translate-x-0 sm:hidden bg-white/20 backdrop-blur-lg border border-white/30 rounded-lg mt-2 z-50 w-72 shadow-xl">
-          <ul className="flex flex-col gap-2 p-3">
-            <li>
-              <Link
-                href="/"
-                onClick={closeMenu}
-                className="block px-6 py-3 bg-primary-600/80 backdrop-blur-sm rounded-2xl text-white hover:bg-primary-700/90 transition-all text-center text-lg font-semibold"
-              >
-                Home
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/cardsList"
-                onClick={closeMenu}
-                className="block px-6 py-3 bg-primary-600/80 backdrop-blur-sm rounded-2xl text-white hover:bg-primary-700/90 transition-all text-center text-lg font-semibold"
-              >
-                Credit Cards
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/chatbot"
-                onClick={closeMenu}
-                className="block px-6 py-3 bg-accent-700/80 backdrop-blur-sm rounded-2xl text-white hover:bg-accent-800/90 transition-all text-center text-lg font-semibold"
-              >
-                Ask our AI
-              </Link>
-            </li>
+        <div className="absolute right-0 top-12 z-50 w-64 rounded-2xl border border-primary-700/60 bg-primary-950/95 p-3 shadow-2xl backdrop-blur-lg sm:hidden">
+          <ul className="space-y-2">
+            {NAV_ITEMS.map((item) => (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  onClick={() => setIsMenuOpen(false)}
+                  className={mobileItemClass(isActive(pathname, item))}
+                >
+                  {item.label}
+                </Link>
+              </li>
+            ))}
           </ul>
         </div>
       )}
     </div>
   );
 }
-
-export default Navigation;
-
-// import Link from "next/link";
-
-// function Navigation() {
-//   return (
-//     <ul className="flex gap-5 px-3 py-6 text-shadow-2xm font-700 md:text-sm ">
-//       <li>
-//         <Link
-//           href="/"
-//           className="bg-primary-600 px-6 py-2 rounded-2xl hover:bg-primary-700 transition-all"
-//         >
-//           Home
-//         </Link>
-//       </li>
-//       <li>
-//         <Link
-//           href="/cardsList"
-//           className="bg-primary-600 px-6 py-2 rounded-2xl hover:bg-primary-700 transition-all"
-//         >
-//           Credit Cards
-//         </Link>
-//       </li>
-//       <li>
-//         <Link
-//           href="/chatbot"
-//           className="bg-accent-700 px-6 py-2 rounded-2xl hover:bg-accent-800 transition-all"
-//         >
-//           Ask our AI
-//         </Link>
-//       </li>
-//     </ul>
-//   );
-// }
-
-// export default Navigation;

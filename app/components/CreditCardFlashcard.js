@@ -1,95 +1,80 @@
 import Image from "next/image";
 
+function formatCurrency(value) {
+  return `Rs ${Number(value || 0).toLocaleString()}`;
+}
+
 export default function CreditCardFlashcard({ card }) {
-  if (!card) {
-    return (
-      <div className="bg-gradient-to-t from-accent-600 to-primary-900 rounded-xl shadow-lg p-6">
-        <p className="text-accent-300 text-center">Card data unavailable</p>
-      </div>
-    );
-  }
+  if (!card) return null;
 
   return (
-    <div className="bg-gradient-to-t from-accent-600 to-primary-900 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:scale-105 overflow-hidden">
-      {/* Card Image */}
-      <div className="relative h-42 bg-gradient-to-br from-accent-300 to-primary-500">
-        <Image
-          src="/logo2.png"
-          alt="logo of card"
-          height="96"
-          width="398"
-          className="object-cover px-20 py-3"
-          onError={(e) => {
-            e.target.style.display = "none";
-          }}
-        />
-        <div className="absolute top-4 right-4 bg-gradient-to-l from-accent-200 to-accent-600 bg-opacity-90 backdrop-blur-sm px-2 py-1 rounded-full text-xs uppercase font-semibold text-primary-800 shadow-2xl">
-          {card.reward_type}
-        </div>
-      </div>
+    <article className="group relative h-full overflow-hidden rounded-2xl border border-primary-700/50 bg-gradient-to-br from-primary-900 to-primary-950 shadow-[0_12px_32px_rgba(10,16,25,0.4)] transition duration-300 hover:-translate-y-1 hover:border-accent-500/50 hover:shadow-[0_18px_40px_rgba(10,16,25,0.55)]">
+      <div className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full bg-accent-500/20 blur-2xl"></div>
 
-      {/* Card Content */}
-      <div className="p-6">
-        {/* Card Name & Issuer */}
-        <div className="mb-4">
-          <h3 className="text-xl font-bold text-accent-300 mb-1">
-            {card.name}
-          </h3>
-          <p className="text-sm text-accent-400">{card.issuer}</p>
+      <header className="relative border-b border-primary-700/60 bg-gradient-to-r from-primary-800/70 to-accent-800/25 px-5 py-4">
+        <div className="mb-3 flex items-start justify-between gap-2">
+          <div>
+            <h3 className="text-lg font-semibold text-primary-50">{card.name}</h3>
+            <p className="text-sm text-primary-300">{card.issuer}</p>
+          </div>
+          <span className="rounded-full border border-accent-500/40 bg-accent-700/35 px-2.5 py-1 text-[11px] font-medium text-accent-100">
+            {card.reward_type}
+          </span>
         </div>
 
-        {/* Key Details */}
-        <div className="space-y-3">
-          {/* Fees */}
-          <div className="flex justify-between items-center">
-            <span className="text-sm font-bold text-primary-800">
-              Annual Fee
-            </span>
-            <span className="font-semibold text-primary-900">
-              ₹{card.annual_fee.toLocaleString()}
-            </span>
-          </div>
+        <div className="relative h-14 overflow-hidden rounded-xl border border-primary-600/40 bg-primary-900/70">
+          <Image
+            src="/logo2.png"
+            alt={`${card.name} logo`}
+            fill
+            className="object-contain p-3 opacity-95"
+            sizes="260px"
+          />
+        </div>
+      </header>
 
-          {/* Reward Rate */}
-          <div className="flex justify-between items-center">
-            <span className="text-sm font-bold text-primary-800">
-              Reward Rate
-            </span>
-            <span className="font-semibold text-primary-900 text-right text-sm">
-              {card.reward_rate}
-            </span>
-          </div>
-
-          {/* Top Perks */}
-          <div className="pt-2">
-            <p className="text-sm font-bold text-primary-800 mb-2">
-              Key Perks:
+      <div className="space-y-4 px-5 py-4">
+        <div className="grid grid-cols-2 gap-3">
+          <div className="rounded-xl border border-primary-700/50 bg-primary-800/55 p-3">
+            <p className="text-[11px] uppercase tracking-wider text-primary-300">Annual Fee</p>
+            <p className="mt-1 text-sm font-semibold text-accent-100">
+              {formatCurrency(card.annual_fee)}
             </p>
-            <div className="flex flex-wrap gap-1">
-              {card.perks.slice(0, 2).map((perk, index) => (
-                <span
-                  key={index}
-                  className="bg-accent-600 text-primary-100 text-xs px-2 py-1 rounded-full"
-                >
-                  {perk}
-                </span>
-              ))}
-              {card.perks.length > 2 && (
-                <span className="bg-primary-900 text-primary-100 text-xs px-2 py-1 rounded-full">
-                  +{card.perks.length - 2} more
-                </span>
-              )}
-            </div>
+          </div>
+          <div className="rounded-xl border border-primary-700/50 bg-primary-800/55 p-3">
+            <p className="text-[11px] uppercase tracking-wider text-primary-300">Reward Rate</p>
+            <p className="mt-1 line-clamp-2 text-sm font-semibold text-accent-100">
+              {card.reward_rate}
+            </p>
           </div>
         </div>
 
-        {/* CTA */}
-        <div className="mt-6 pt-4 border-t border-primary-950">
-          <div className="w-full bg-primary-700 text-primary-100 py-2 px-4 pl-28 rounded-lg font-medium transition-all duration-500 hover:bg-accent-800">
-            View Details
+        <div>
+          <p className="mb-2 text-xs uppercase tracking-wider text-primary-300">Top Perks</p>
+          <div className="flex flex-wrap gap-2">
+            {(card.perks || []).slice(0, 3).map((perk) => (
+              <span
+                key={perk}
+                className="rounded-full border border-primary-600/60 bg-primary-700/35 px-2.5 py-1 text-[11px] text-primary-100"
+              >
+                {perk}
+              </span>
+            ))}
+            {(card.perks || []).length > 3 && (
+              <span className="rounded-full border border-accent-500/50 bg-accent-700/30 px-2.5 py-1 text-[11px] text-accent-100">
+                +{card.perks.length - 3} more
+              </span>
+            )}
           </div>
         </div>
+
+        <footer className="pt-1">
+          <div className="inline-flex items-center gap-2 text-sm font-semibold text-accent-200">
+            View details
+            <span aria-hidden>→</span>
+          </div>
+        </footer>
       </div>
-    </div>
+    </article>
   );
 }
