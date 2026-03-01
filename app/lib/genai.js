@@ -365,71 +365,44 @@ function hasListStructure(text = "") {
   return hasBullets || hasNumbered;
 }
 
-function splitIntoClauses(text = "") {
-  const sentenceParts = sentenceSplit(text) || [];
-  if (sentenceParts.length > 1) return sentenceParts;
-
-  const clauseParts = String(text)
-    .split(/\s*;\s*|\s*,\s*|\s+\|\s+/)
-    .map((item) => item.trim())
-    .filter(Boolean);
-
-  if (clauseParts.length > 1) return clauseParts;
-
-  const connectorParts = String(text)
-    .split(/\s+(?:and|but|because|so|while|whereas)\s+/i)
-    .map((item) => item.trim())
-    .filter(Boolean);
-
-  return connectorParts.length > 1 ? connectorParts : [String(text).trim()];
-}
-
-function chunkLongText(text = "", maxLen = 96) {
-  const words = String(text).split(/\s+/).filter(Boolean);
-  const chunks = [];
-  let current = "";
-
-  for (const word of words) {
-    const next = current ? `${current} ${word}` : word;
-    if (next.length > maxLen && current) {
-      chunks.push(current.trim());
-      current = word;
-    } else {
-      current = next;
-    }
-  }
-
-  if (current.trim()) chunks.push(current.trim());
-  return chunks;
-}
-
 function buildStructuredReply(text = "") {
   const compact = String(text).replace(/\s+/g, " ").trim();
   if (!compact) return FALLBACK_REPLY;
 
-  const parts = splitIntoClauses(compact).flatMap((item) => chunkLongText(item));
-  if (!parts.length) return FALLBACK_REPLY;
-
-  if (parts.length === 1) {
-    return parts[0];
+  const sentences = sentenceSplit(compact) || [compact];
+  if (sentences.length === 1) {
+    return compact;
   }
 
-  const lines = [...parts];
+  if (sentences.length === 2) {
+    return `${sentences[0]}\n\n${sentences[1]}`;
+  }
+
+  const lines = [...sentences];
   let closingQuestion = "";
   if (lines.length > 1 && /\?$/.test(lines.at(-1) || "")) {
     closingQuestion = lines.pop() || "";
   }
 
-  const intro = lines.shift() || "Here is a clear breakdown:";
+  const intro = lines.shift() || "";
+  const secondLine = lines.shift() || "";
   const detailBullets = lines
-    .slice(0, 5)
-    .map((item) => item.replace(/^[-*]\s+/, "").trim())
+    .slice(0, 4)
+    .map((item) => item.replace(/^[-*]\s+/, "").replace(/\s+/g, " ").trim())
     .filter(Boolean);
 
-  let formatted = intro;
-  if (detailBullets.length > 0) {
-    formatted = `${intro}\n\n${detailBullets.map((item) => `- ${item}`).join("\n")}`;
+  const paragraphs = [intro];
+  if (secondLine) {
+    paragraphs.push(secondLine);
   }
+
+  let formatted = paragraphs.join("\n\n");
+  if (detailBullets.length >= 2) {
+    formatted = `${formatted}\n\n${detailBullets.map((item) => `- ${item}`).join("\n")}`;
+  } else if (detailBullets.length === 1) {
+    formatted = `${formatted}\n\n${detailBullets[0]}`;
+  }
+
   if (closingQuestion) {
     formatted = `${formatted}\n\n${closingQuestion}`;
   }
