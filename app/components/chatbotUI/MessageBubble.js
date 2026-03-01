@@ -1,6 +1,65 @@
 export default function MessageBubble({ message }) {
+  function normalizeInlineLists(content = "") {
+    const text = String(content).replace(/\r\n/g, "\n").trim();
+    if (!text) return "";
+
+    if (/\n\s*[-*]\s+/.test(text) || /\n\s*\d+\.\s+/.test(text)) {
+      return text;
+    }
+
+    const hasInlineListLead = /:\s*(?:-|•|–)\s+/.test(text);
+    const inlineSplitCount = (text.match(/\s(?:-|•|–)\s+/g) || []).length;
+    if (!hasInlineListLead && inlineSplitCount < 2) {
+      return text;
+    }
+
+    const parts = text
+      .split(/\s(?:-|•|–)\s+/)
+      .map((item) => item.replace(/\s+/g, " ").trim())
+      .filter(Boolean);
+    if (parts.length < 2) return text;
+
+    const intro = parts.shift();
+    const bulletItems = [];
+    let trailingQuestion = "";
+
+    for (const part of parts) {
+      const splitQuestion = part.match(
+        /^(.*?)(\s+(?:Which|What|Do|Can|Could|Would|Should|Please)\b.*\?)$/i,
+      );
+      if (splitQuestion) {
+        const detail = splitQuestion[1].trim();
+        if (detail) bulletItems.push(detail);
+        trailingQuestion = splitQuestion[2].trim();
+      } else {
+        bulletItems.push(part);
+      }
+    }
+
+    let normalized = `${intro}\n${bulletItems.map((item) => `- ${item}`).join("\n")}`;
+    if (trailingQuestion) {
+      normalized = `${normalized}\n\n${trailingQuestion}`;
+    }
+    return normalized.trim();
+  }
+
+  function normalizeParagraphBreaks(content = "") {
+    const text = String(content).trim();
+    if (!text || text.includes("\n")) return text;
+
+    const sentences =
+      text
+        .match(/[^.!?]+[.!?]+/g)
+        ?.map((item) => item.trim())
+        .filter(Boolean) || [];
+    if (sentences.length < 3) return text;
+
+    return `${sentences[0]}\n\n${sentences.slice(1).join(" ")}`;
+  }
+
   function buildBlocks(content = "") {
-    const lines = String(content).split("\n");
+    const normalizedContent = normalizeParagraphBreaks(normalizeInlineLists(content));
+    const lines = String(normalizedContent).split("\n");
     const blocks = [];
     let paragraphLines = [];
     let listType = null;
