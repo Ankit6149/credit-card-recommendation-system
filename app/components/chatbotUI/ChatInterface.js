@@ -21,6 +21,40 @@ const CHAT_MODES = [
 ];
 const RESOLVED_MODES = new Set(["general", "finance", "cards"]);
 
+function normalizeRequestedMode(rawMode = "") {
+  const value = String(rawMode).trim().toLowerCase();
+  if (value === "card") return "cards";
+  if (["auto", "general", "finance", "cards"].includes(value)) return value;
+  return null;
+}
+
+function parseModeSwitchRequest(input = "") {
+  const text = String(input).trim();
+  if (!text) return { mode: null, commandOnly: false };
+
+  const directMatch = text.match(
+    /(?:switch|change|set|move|go)\s+(?:to\s+)?(auto|general|finance|cards?|card)\s*(?:mode)?/i,
+  );
+  if (directMatch) {
+    return {
+      mode: normalizeRequestedMode(directMatch[1]),
+      commandOnly: /^\s*(?:please\s+)?(?:switch|change|set|move|go)\s+(?:to\s+)?(auto|general|finance|cards?|card)\s*(?:mode)?\s*[.!?]*\s*$/i.test(
+        text,
+      ),
+    };
+  }
+
+  const shorthandMatch = text.match(/^\s*(auto|general|finance|cards?|card)\s*mode?\s*[.!?]*\s*$/i);
+  if (shorthandMatch) {
+    return {
+      mode: normalizeRequestedMode(shorthandMatch[1]),
+      commandOnly: true,
+    };
+  }
+
+  return { mode: null, commandOnly: false };
+}
+
 const QUICK_PROMPTS = {
   auto: [
     "What all can you tell me in finance?",
@@ -155,13 +189,34 @@ export default function ChatInterface() {
 
   const sendMessage = async (message) => {
     if (!message.trim() || isLoading) return;
+    const trimmedMessage = message.trim();
+    const modeSwitch = parseModeSwitchRequest(trimmedMessage);
+    const requestedMode = modeSwitch.mode;
+    const effectiveMode = requestedMode || chatMode;
 
     const userMessage = {
       role: "user",
-      content: message.trim(),
+      content: trimmedMessage,
       timestamp: new Date().toISOString(),
     };
     const outgoingMessages = [...messages, userMessage];
+
+    if (requestedMode) {
+      setChatMode(requestedMode);
+      if (requestedMode !== "auto") setActiveMode(requestedMode);
+    }
+
+    if (modeSwitch.commandOnly && requestedMode) {
+      setMessages([
+        ...outgoingMessages,
+        {
+          role: "assistant",
+          content: `Switched to ${modeLabel(requestedMode)} mode.`,
+          timestamp: new Date().toISOString(),
+        },
+      ]);
+      return;
+    }
 
     setMessages(outgoingMessages);
     setIsLoading(true);
@@ -177,7 +232,7 @@ export default function ChatInterface() {
           })),
           userProfile,
           currentProfile: userProfile,
-          chatMode,
+          chatMode: effectiveMode,
         }),
       });
 
@@ -240,10 +295,6 @@ export default function ChatInterface() {
             <div>
               <h2 className="text-lg font-semibold text-primary-50 sm:text-xl">CardXpert Pro</h2>
               <p className="text-xs text-primary-300">{modeDescription(chatMode)}</p>
-              <p className="mt-1 text-[11px] text-accent-200">
-                Active now: {modeLabel(activeMode)}
-                {chatMode === "auto" ? " (auto-detected)" : ""}
-              </p>
             </div>
             <button
               onClick={clearChat}
@@ -261,15 +312,14 @@ export default function ChatInterface() {
               return (
                 <button
                   key={mode.id}
-                  onClick={() => setChatMode(mode.id)}
-                  className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                    isSelected
-                      ? "bg-gradient-to-r from-primary-600 to-accent-600 text-primary-50"
-                      : "border border-primary-600/60 bg-primary-800/70 text-primary-200 hover:border-accent-500/60 hover:text-accent-100"
+                onClick={() => setChatMode(mode.id)}
+                className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition-all duration-300 ease-out ${
+                  isSelected
+                    ? "bg-gradient-to-r from-primary-600 to-accent-600 text-primary-50"
+                    : "border border-primary-600/60 bg-primary-800/70 text-primary-200 hover:border-accent-500/60 hover:text-accent-100"
                   } ${isAutoActive ? "ring-1 ring-accent-300/70" : ""}`}
                 >
                   {mode.label}
-                  {isAutoActive ? " (Active)" : ""}
                 </button>
               );
             })}
