@@ -64,6 +64,7 @@ Reply style:
   - numbered steps for processes.
 - Use short paragraphs and line breaks. Avoid one long paragraph for complex answers.
 - Keep responses concise unless the user asks for deep detail.
+- Reply text must be plain text only. Do not include markdown symbols like #, **, __, or backticks.
 
 Profile schema:
 - income: one of <20k, 20k-50k, 50k-1L, 1L+
@@ -366,8 +367,29 @@ function normalizeReplyWhitespace(reply = "") {
     .trim();
 }
 
+function stripMarkdownArtifacts(reply = "") {
+  return String(reply)
+    .split(/\r?\n/)
+    .map((rawLine) => {
+      let line = rawLine.trimEnd();
+      if (!line.trim()) return "";
+
+      line = line.replace(/^#{1,6}\s+/, "");
+      line = line.replace(/^>\s+/, "");
+      line = line.replace(/^[-*]\s+\*\*(.+?)\*\*:\s*/i, "- $1: ");
+      line = line.replace(/^\*\*(.+?)\*\*:\s*/i, "- $1: ");
+      line = line.replace(/\*\*(.+?)\*\*/g, "$1");
+      line = line.replace(/__(.+?)__/g, "$1");
+      line = line.replace(/`([^`]+)`/g, "$1");
+      line = line.replace(/^[-*]\s+/, "- ");
+
+      return line.trimEnd();
+    })
+    .join("\n");
+}
+
 function enforceReplyStructure(reply = "", latestUserMessage = "") {
-  const normalized = normalizeReplyWhitespace(reply);
+  const normalized = normalizeReplyWhitespace(stripMarkdownArtifacts(reply));
   if (!normalized) return FALLBACK_REPLY;
 
   if (isSimpleUserMessage(latestUserMessage)) {
