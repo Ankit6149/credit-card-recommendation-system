@@ -121,6 +121,12 @@ export default function ChatInterface() {
   }, [chatMode]);
 
   useEffect(() => {
+    if (chatMode !== "cards" && showRecommendations) {
+      setShowRecommendations(false);
+    }
+  }, [chatMode, showRecommendations]);
+
+  useEffect(() => {
     if (!scrollRef.current) return;
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages, isLoading, showRecommendations]);

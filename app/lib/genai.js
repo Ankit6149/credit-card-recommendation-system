@@ -55,6 +55,16 @@ Behavior:
 - Never invent card facts that are missing from the card catalog.
 - Ask at most one follow-up question in a turn.
 
+Reply style:
+- Adapt style to user request complexity.
+- If the user asks a simple query (greeting, quick confirmation, short factual ask), reply in one concise line.
+- For explanations, comparisons, advice, or multi-part answers, use structured text in reply:
+  - short section titles when useful,
+  - bullet points for options/highlights,
+  - numbered steps for processes.
+- Use short paragraphs and line breaks. Avoid one long paragraph for complex answers.
+- Keep responses concise unless the user asks for deep detail.
+
 Profile schema:
 - income: one of <20k, 20k-50k, 50k-1L, 1L+
 - spending: array from fuel, travel, groceries, dining, shopping, bills
@@ -327,6 +337,57 @@ function normalizeModelPayload(payload = {}) {
   };
 }
 
+function isSimpleUserMessage(input = "") {
+  const text = String(input).trim().toLowerCase();
+  if (!text) return false;
+  if (text.length <= 24) return true;
+
+  return (
+    /^(hi|hello|hey|yo|thanks|thank you|ok|okay|cool|great|yes|no|sure|fine)[!. ]*$/.test(
+      text,
+    ) ||
+    /^(what(?:'s| is) up|how are you)[?.! ]*$/.test(text)
+  );
+}
+
+function sentenceSplit(text = "") {
+  return String(text)
+    .match(/[^.!?]+[.!?]?/g)
+    ?.map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function enforceReplyStructure(reply = "", latestUserMessage = "") {
+  const cleaned = String(reply).replace(/\s+/g, " ").trim();
+  if (!cleaned) return FALLBACK_REPLY;
+
+  if (isSimpleUserMessage(latestUserMessage)) {
+    return cleaned;
+  }
+
+  if (cleaned.includes("\n")) {
+    return cleaned;
+  }
+
+  const sentences = sentenceSplit(cleaned) || [cleaned];
+  if (sentences.length <= 2 && cleaned.length <= 140) {
+    return cleaned;
+  }
+
+  const intro = sentences[0];
+  const bullets = sentences
+    .slice(1, 5)
+    .map((item) => item.replace(/^[-*]\s+/, "").trim())
+    .filter(Boolean)
+    .map((item) => `- ${item}`);
+
+  if (!bullets.length) {
+    return sentences.join("\n\n");
+  }
+
+  return `${intro}\n\n${bullets.join("\n")}`;
+}
+
 function buildPrompt({
   messages,
   currentProfile,
@@ -403,6 +464,7 @@ export async function createChatCompletion({
   const response = await result.response;
   const rawText = response.text();
   const modelPayload = normalizeModelPayload(parseJsonFromModel(rawText));
+  const formattedReply = enforceReplyStructure(modelPayload.reply, latestUserMessage);
 
   const mergedUpdates = cardMode
     ? mergeProfiles(heuristicProfile, modelPayload.profile_updates)
@@ -415,7 +477,7 @@ export async function createChatCompletion({
     (modelPayload.should_show_recommendations || isProfileComplete(mergedProfile));
 
   return {
-    message: modelPayload.reply,
+    message: formattedReply,
     intent:
       normalizedMode === "general"
         ? "general_chat"
