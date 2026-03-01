@@ -446,6 +446,43 @@ function normalizeReplyWhitespace(reply = "") {
     .trim();
 }
 
+function normalizeInlineLists(reply = "") {
+  const text = String(reply);
+
+  // Convert inline dash lists into proper line-separated bullet lists.
+  if (!/\n\s*[-*]\s+/.test(text)) {
+    const dashListCount = (text.match(/\s-\s+/g) || []).length;
+    if (dashListCount >= 2 || (dashListCount >= 1 && /:\s*-\s+/.test(text))) {
+      const parts = text
+        .split(/\s-\s+/)
+        .map((item) => item.trim())
+        .filter(Boolean);
+      if (parts.length >= 2) {
+        const intro = parts.shift();
+        return `${intro}\n${parts.map((item) => `- ${item}`).join("\n")}`;
+      }
+    }
+  }
+
+  return text;
+}
+
+function prettifyStructuredText(text = "") {
+  const lines = String(text).split("\n");
+  const output = [];
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index].trimEnd();
+    const isBullet = /^\s*[-*]\s+/.test(line) || /^\s*\d+\.\s+/.test(line);
+    if (isBullet && output.length > 0 && output[output.length - 1].trim() !== "") {
+      output.push("");
+    }
+    output.push(line);
+  }
+
+  return output.join("\n").replace(/\n{3,}/g, "\n\n").trim();
+}
+
 function stripMarkdownArtifacts(reply = "") {
   return String(reply)
     .split(/\r?\n/)
@@ -468,7 +505,9 @@ function stripMarkdownArtifacts(reply = "") {
 }
 
 function enforceReplyStructure(reply = "", latestUserMessage = "") {
-  const normalized = normalizeReplyWhitespace(stripMarkdownArtifacts(reply));
+  const normalized = prettifyStructuredText(
+    normalizeReplyWhitespace(normalizeInlineLists(stripMarkdownArtifacts(reply))),
+  );
   if (!normalized) return FALLBACK_REPLY;
 
   if (isSimpleUserMessage(latestUserMessage)) {
