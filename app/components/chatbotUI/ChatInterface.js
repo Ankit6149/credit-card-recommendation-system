@@ -315,10 +315,7 @@ export default function ChatInterface() {
 
           <div className="mt-2 flex gap-2 overflow-x-auto pb-1 no-scrollbar">
             {CHAT_MODES.map((mode) => {
-              const isSelected =
-                chatMode === "auto"
-                  ? mode.id === activeMode
-                  : chatMode === mode.id;
+              const isSelected = chatMode === mode.id;
 
               return (
                 <button
