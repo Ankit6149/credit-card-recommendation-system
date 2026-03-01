@@ -475,6 +475,18 @@ export async function createChatCompletion({
   const shouldShowRecommendations =
     cardMode &&
     (modelPayload.should_show_recommendations || isProfileComplete(mergedProfile));
+  const activeMode =
+    normalizedMode === "general"
+      ? "general"
+      : normalizedMode === "finance"
+        ? "finance"
+        : normalizedMode === "cards"
+          ? "cards"
+          : cardMode
+            ? "cards"
+            : modelPayload.intent === "finance_education"
+              ? "finance"
+              : "general";
 
   return {
     message: formattedReply,
@@ -488,6 +500,7 @@ export async function createChatCompletion({
             : modelPayload.intent === "finance_education"
               ? "finance_education"
               : "general_chat",
+    activeMode,
     profileUpdates: mergedUpdates,
     mergedProfile,
     shouldShowRecommendations,

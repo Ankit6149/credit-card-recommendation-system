@@ -19,6 +19,7 @@ const CHAT_MODES = [
   { id: "finance", label: "Finance" },
   { id: "cards", label: "Cards" },
 ];
+const RESOLVED_MODES = new Set(["general", "finance", "cards"]);
 
 const QUICK_PROMPTS = {
   auto: [
@@ -74,12 +75,20 @@ function modeDescription(mode) {
   return "Auto intent detection mode";
 }
 
+function modeLabel(mode) {
+  if (mode === "general") return "General";
+  if (mode === "finance") return "Finance";
+  if (mode === "cards") return "Cards";
+  return "General";
+}
+
 export default function ChatInterface() {
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [userProfile, setUserProfile] = useState({});
   const [showRecommendations, setShowRecommendations] = useState(false);
   const [chatMode, setChatMode] = useState("auto");
+  const [activeMode, setActiveMode] = useState("general");
   const scrollRef = useRef(null);
   const endRef = useRef(null);
 
@@ -93,6 +102,7 @@ export default function ChatInterface() {
     const savedProfile = localStorage.getItem("userProfile");
     const savedRecommendationState = localStorage.getItem("showRecommendations");
     const savedChatMode = localStorage.getItem("chatMode");
+    const savedActiveMode = localStorage.getItem("activeMode");
 
     if (savedMessages) setMessages(JSON.parse(savedMessages));
     else setMessages([STARTER_MESSAGE]);
@@ -101,7 +111,9 @@ export default function ChatInterface() {
     if (savedRecommendationState) setShowRecommendations(savedRecommendationState === "true");
     if (savedChatMode && CHAT_MODES.some((mode) => mode.id === savedChatMode)) {
       setChatMode(savedChatMode);
+      if (savedChatMode !== "auto") setActiveMode(savedChatMode);
     }
+    if (savedActiveMode && RESOLVED_MODES.has(savedActiveMode)) setActiveMode(savedActiveMode);
   }, []);
 
   useEffect(() => {
@@ -118,6 +130,16 @@ export default function ChatInterface() {
 
   useEffect(() => {
     localStorage.setItem("chatMode", chatMode);
+  }, [chatMode]);
+
+  useEffect(() => {
+    localStorage.setItem("activeMode", activeMode);
+  }, [activeMode]);
+
+  useEffect(() => {
+    if (chatMode !== "auto") {
+      setActiveMode(chatMode);
+    }
   }, [chatMode]);
 
   useEffect(() => {
@@ -166,6 +188,9 @@ export default function ChatInterface() {
         ? mergeProfiles(userProfile, data.mergedProfile)
         : mergeProfiles(userProfile, data?.profileUpdates || {});
       setUserProfile(merged);
+      if (typeof data?.activeMode === "string" && RESOLVED_MODES.has(data.activeMode)) {
+        setActiveMode(data.activeMode);
+      }
 
       setMessages((prev) => [
         ...prev,
@@ -200,9 +225,11 @@ export default function ChatInterface() {
     localStorage.removeItem("chatMessages");
     localStorage.removeItem("userProfile");
     localStorage.removeItem("showRecommendations");
+    localStorage.removeItem("activeMode");
     setMessages([{ ...STARTER_MESSAGE, timestamp: new Date().toISOString() }]);
     setUserProfile({});
     setShowRecommendations(false);
+    setActiveMode(chatMode === "auto" ? "general" : chatMode);
   };
 
   return (
@@ -213,6 +240,10 @@ export default function ChatInterface() {
             <div>
               <h2 className="text-lg font-semibold text-primary-50 sm:text-xl">CardXpert Pro</h2>
               <p className="text-xs text-primary-300">{modeDescription(chatMode)}</p>
+              <p className="mt-1 text-[11px] text-accent-200">
+                Active now: {modeLabel(activeMode)}
+                {chatMode === "auto" ? " (auto-detected)" : ""}
+              </p>
             </div>
             <button
               onClick={clearChat}
@@ -223,19 +254,25 @@ export default function ChatInterface() {
           </div>
 
           <div className="mt-4 flex gap-2 overflow-x-auto pb-1 no-scrollbar">
-            {CHAT_MODES.map((mode) => (
-              <button
-                key={mode.id}
-                onClick={() => setChatMode(mode.id)}
-                className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                  chatMode === mode.id
-                    ? "bg-gradient-to-r from-primary-600 to-accent-600 text-primary-50"
-                    : "border border-primary-600/60 bg-primary-800/70 text-primary-200 hover:border-accent-500/60 hover:text-accent-100"
-                }`}
-              >
-                {mode.label}
-              </button>
-            ))}
+            {CHAT_MODES.map((mode) => {
+              const isSelected = chatMode === mode.id;
+              const isAutoActive = chatMode === "auto" && mode.id === activeMode;
+
+              return (
+                <button
+                  key={mode.id}
+                  onClick={() => setChatMode(mode.id)}
+                  className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                    isSelected
+                      ? "bg-gradient-to-r from-primary-600 to-accent-600 text-primary-50"
+                      : "border border-primary-600/60 bg-primary-800/70 text-primary-200 hover:border-accent-500/60 hover:text-accent-100"
+                  } ${isAutoActive ? "ring-1 ring-accent-300/70" : ""}`}
+                >
+                  {mode.label}
+                  {isAutoActive ? " (Active)" : ""}
+                </button>
+              );
+            })}
           </div>
         </header>
 

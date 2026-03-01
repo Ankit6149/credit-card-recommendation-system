@@ -49,9 +49,11 @@ function getFallbackResponse(messages, userProfile, chatMode = "auto") {
       chatMode === "finance"
         ? "I can help with finance topics like budgeting, credit score, debt payoff, investing basics, taxes, and planning. What area do you want to start with?"
         : "I can chat on any topic. If you want credit-card help later, just ask and I will switch to card guidance.";
+    const activeMode = chatMode === "finance" ? "finance" : "general";
     return {
       message: fallbackByMode,
       intent: chatMode === "finance" ? "finance_education" : "general_chat",
+      activeMode,
       profileUpdates: {},
       mergedProfile: userProfile || {},
       shouldShowRecommendations: false,
@@ -68,10 +70,29 @@ function getFallbackResponse(messages, userProfile, chatMode = "auto") {
   return {
     message,
     intent: profileComplete ? "card_recommendation" : "profile_collection",
+    activeMode: "cards",
     profileUpdates,
     mergedProfile,
     shouldShowRecommendations: profileComplete,
   };
+}
+
+function getProviderIssueMessage(aiError) {
+  const text = String(aiError?.message || "");
+
+  if (/quota|too many requests|429|rate[- ]?limit/i.test(text)) {
+    return "The AI provider quota is exceeded right now. Please retry in about a minute, or increase Gemini API quota/billing to restore full chat responses.";
+  }
+
+  if (/api key is missing/i.test(text)) {
+    return "Gemini API key is not configured on the server. Add GEMINI_API_KEY and restart the app.";
+  }
+
+  if (/api key not valid|invalid api key|unauthenticated|permission|401|403/i.test(text)) {
+    return "Gemini API key is invalid or unauthorized. Replace the key and restart the app.";
+  }
+
+  return null;
 }
 
 export async function POST(request) {
@@ -102,6 +123,18 @@ export async function POST(request) {
         "AI provider failed; fallback used:",
         aiError?.message || aiError,
       );
+      const providerIssueMessage = getProviderIssueMessage(aiError);
+      if (providerIssueMessage) {
+        const fallbackPayload = getFallbackResponse(messages, userProfile, chatMode);
+        return Response.json({
+          message: providerIssueMessage,
+          intent: fallbackPayload.intent,
+          activeMode: fallbackPayload.activeMode,
+          profileUpdates: fallbackPayload.profileUpdates || {},
+          mergedProfile: fallbackPayload.mergedProfile || userProfile || {},
+          shouldShowRecommendations: false,
+        });
+      }
       return Response.json(getFallbackResponse(messages, userProfile, chatMode));
     }
   } catch (error) {
@@ -110,6 +143,7 @@ export async function POST(request) {
       {
         message: "I hit an error. Please retry in a moment.",
         intent: "general_chat",
+        activeMode: "general",
         profileUpdates: {},
         mergedProfile: {},
         shouldShowRecommendations: false,
