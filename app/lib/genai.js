@@ -358,6 +358,53 @@ function sentenceSplit(text = "") {
     .filter(Boolean);
 }
 
+function isStructuredText(text = "") {
+  const value = String(text);
+  const hasBullets = /(^|\n)\s*[-*]\s+/.test(value);
+  const hasNumbered = /(^|\n)\s*\d+\.\s+/.test(value);
+  const paragraphs = value.split(/\n{2,}/).filter((item) => item.trim().length > 0);
+  return hasBullets || hasNumbered || paragraphs.length >= 2;
+}
+
+function buildStructuredReply(text = "") {
+  const compact = String(text).replace(/\s+/g, " ").trim();
+  if (!compact) return FALLBACK_REPLY;
+
+  const sentences = sentenceSplit(compact) || [compact];
+  if (sentences.length === 1) {
+    const clauseParts = compact
+      .split(/\s*;\s*|\s+\|\s+/)
+      .map((item) => item.trim())
+      .filter(Boolean);
+    if (clauseParts.length >= 2) {
+      return clauseParts.slice(0, 5).map((item) => `- ${item}`).join("\n");
+    }
+    return compact;
+  }
+
+  const lines = [...sentences];
+  let closingQuestion = "";
+  if (lines.length > 1 && /\?$/.test(lines.at(-1) || "")) {
+    closingQuestion = lines.pop() || "";
+  }
+
+  const intro = lines.shift() || "";
+  const detailBullets = lines
+    .slice(0, 5)
+    .map((item) => item.replace(/^[-*]\s+/, "").trim())
+    .filter(Boolean);
+
+  let formatted = intro;
+  if (detailBullets.length > 0) {
+    formatted = `${intro}\n\n${detailBullets.map((item) => `- ${item}`).join("\n")}`;
+  }
+  if (closingQuestion) {
+    formatted = `${formatted}\n\n${closingQuestion}`;
+  }
+
+  return formatted.trim();
+}
+
 function normalizeReplyWhitespace(reply = "") {
   return String(reply)
     .replace(/\r\n/g, "\n")
@@ -396,28 +443,11 @@ function enforceReplyStructure(reply = "", latestUserMessage = "") {
     return normalized.replace(/\s+/g, " ").trim();
   }
 
-  if (normalized.includes("\n")) {
+  if (isStructuredText(normalized)) {
     return normalized;
   }
 
-  const compact = normalized.replace(/\s+/g, " ").trim();
-  const sentences = sentenceSplit(compact) || [compact];
-  if (sentences.length <= 2 && compact.length <= 140) {
-    return compact;
-  }
-
-  const intro = sentences[0];
-  const bullets = sentences
-    .slice(1, 5)
-    .map((item) => item.replace(/^[-*]\s+/, "").trim())
-    .filter(Boolean)
-    .map((item) => `- ${item}`);
-
-  if (!bullets.length) {
-    return sentences.join("\n\n");
-  }
-
-  return `${intro}\n\n${bullets.join("\n")}`;
+  return buildStructuredReply(normalized);
 }
 
 function buildPrompt({
