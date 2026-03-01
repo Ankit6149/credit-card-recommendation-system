@@ -357,21 +357,31 @@ function sentenceSplit(text = "") {
     .filter(Boolean);
 }
 
+function normalizeReplyWhitespace(reply = "") {
+  return String(reply)
+    .replace(/\r\n/g, "\n")
+    .replace(/\t/g, " ")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 function enforceReplyStructure(reply = "", latestUserMessage = "") {
-  const cleaned = String(reply).replace(/\s+/g, " ").trim();
-  if (!cleaned) return FALLBACK_REPLY;
+  const normalized = normalizeReplyWhitespace(reply);
+  if (!normalized) return FALLBACK_REPLY;
 
   if (isSimpleUserMessage(latestUserMessage)) {
-    return cleaned;
+    return normalized.replace(/\s+/g, " ").trim();
   }
 
-  if (cleaned.includes("\n")) {
-    return cleaned;
+  if (normalized.includes("\n")) {
+    return normalized;
   }
 
-  const sentences = sentenceSplit(cleaned) || [cleaned];
-  if (sentences.length <= 2 && cleaned.length <= 140) {
-    return cleaned;
+  const compact = normalized.replace(/\s+/g, " ").trim();
+  const sentences = sentenceSplit(compact) || [compact];
+  if (sentences.length <= 2 && compact.length <= 140) {
+    return compact;
   }
 
   const intro = sentences[0];
