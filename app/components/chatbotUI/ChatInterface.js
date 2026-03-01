@@ -20,6 +20,12 @@ const CHAT_MODES = [
   { id: "cards", label: "Cards" },
 ];
 const RESOLVED_MODES = new Set(["general", "finance", "cards"]);
+const MODE_DOT_TONE = {
+  auto: "bg-primary-300",
+  general: "bg-sky-300",
+  finance: "bg-emerald-300",
+  cards: "bg-amber-300",
+};
 
 function normalizeRequestedMode(rawMode = "") {
   const value = String(rawMode).trim().toLowerCase();
@@ -126,9 +132,10 @@ export default function ChatInterface() {
   const scrollRef = useRef(null);
   const endRef = useRef(null);
 
+  const promptMode = chatMode === "auto" ? activeMode : chatMode;
   const quickPrompts = useMemo(
-    () => QUICK_PROMPTS[chatMode] || QUICK_PROMPTS.auto,
-    [chatMode],
+    () => QUICK_PROMPTS[promptMode] || QUICK_PROMPTS.auto,
+    [promptMode],
   );
 
   useEffect(() => {
@@ -305,24 +312,51 @@ export default function ChatInterface() {
           </div>
 
           <div className="mt-4 flex gap-2 overflow-x-auto pb-1 no-scrollbar">
-            {CHAT_MODES.map((mode) => {
-              const isSelected = chatMode === mode.id;
-              const isAutoActive = chatMode === "auto" && mode.id === activeMode;
+            <div className="w-full rounded-xl border border-primary-700/65 bg-primary-950/65 p-1.5">
+              <div className="grid grid-cols-4 gap-1">
+                {CHAT_MODES.map((mode) => {
+                  const isSelected = chatMode === mode.id;
+                  const isInferred = chatMode === "auto" && mode.id === activeMode && mode.id !== "auto";
+                  const dotTone = MODE_DOT_TONE[mode.id] || MODE_DOT_TONE.auto;
 
-              return (
-                <button
-                  key={mode.id}
-                onClick={() => setChatMode(mode.id)}
-                className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition-all duration-300 ease-out ${
-                  isSelected
-                    ? "bg-gradient-to-r from-primary-600 to-accent-600 text-primary-50"
-                    : "border border-primary-600/60 bg-primary-800/70 text-primary-200 hover:border-accent-500/60 hover:text-accent-100"
-                  } ${isAutoActive ? "ring-1 ring-accent-300/70" : ""}`}
-                >
-                  {mode.label}
-                </button>
-              );
-            })}
+                  return (
+                    <button
+                      key={mode.id}
+                      onClick={() => setChatMode(mode.id)}
+                      aria-pressed={isSelected}
+                      title={
+                        isSelected
+                          ? `${mode.label} mode selected`
+                          : isInferred
+                            ? `${mode.label} inferred in auto mode`
+                            : `${mode.label} mode`
+                      }
+                      className={`relative rounded-lg border px-2 py-2 text-xs font-semibold transition-[background-color,border-color,color,box-shadow,transform] duration-300 ease-out sm:px-3 ${
+                        isSelected
+                          ? "border-transparent bg-gradient-to-r from-primary-600 to-accent-600 text-primary-50 shadow-[0_6px_20px_rgba(30,108,255,0.26)]"
+                          : "border-primary-600/60 bg-primary-800/70 text-primary-200 hover:border-accent-500/60 hover:text-accent-100 hover:-translate-y-[1px]"
+                      } ${
+                        isInferred
+                          ? "border-accent-400/70 bg-primary-800/90 text-accent-100 shadow-[0_0_0_1px_rgba(155,195,255,0.25)_inset]"
+                          : ""
+                      }`}
+                    >
+                      <span className="inline-flex items-center gap-2">
+                        <span
+                          className={`h-2 w-2 rounded-full ${dotTone} ${
+                            isSelected || isInferred ? "animate-pulse" : "opacity-80"
+                          }`}
+                        />
+                        <span>{mode.label}</span>
+                      </span>
+                      {isInferred && (
+                        <span className="pointer-events-none absolute inset-x-2 bottom-1 h-[2px] rounded-full bg-gradient-to-r from-accent-300/30 via-accent-200 to-accent-300/30" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </header>
 
